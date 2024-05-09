@@ -6,12 +6,36 @@
 // updated 4-25-2021
 // https://chrome.google.com/webstore/detail/music-visualizer-for-goog/ofhohcappnjhojpboeamfijglinngdnb
 
-let websiteConfig = {
-  name: 'Default-Config',
-  color: '#aaaaaa',
-  fftUni: 16384,
-  bottom: 90,
-};
+/**
+ * enum for all of the visualizers
+ * @readonly
+ * @enum {number}
+ */
+const visualizers = Object.freeze({
+  bars: 0,
+  waves: 1,
+  circle: 2,
+  ambient: 3,
+});
+
+/**
+ * enum for profiles
+ * @readonly
+ * @enum {symbol}
+ */
+const profiles = Object.freeze({
+	default: Symbol("default"),
+	music: Symbol("music"),
+	youtube: Symbol("youtube"),
+});
+
+let profile = profiles.default;
+if(window.location.href.startsWith('https://music.youtube.com')) profile = profiles.music;
+else if(window.location.href.startsWith('https://youtube.com')) profile = profiles.youtube;
+Object.freeze(profile);
+
+// https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode/fftSize
+const fftUni = 8192;
 
 let userPreferences = {
   colorCycle: true,
@@ -23,108 +47,140 @@ let userPreferences = {
   allow_youtube: true,
   allow_youtube_music: true,
   allow_other: false,
+  defaultVisualizer: null,
 };
 
 const mediaElements = [];
-//                       bar, wav , cir , amb ,
+//                         bar    wav    cir    amb
 const visualizerToggles = [false, false, false, false];
 const visualizerToggleFunctions = [toggleBarVis, toggleWaveViz, toggleCircleViz, toggleAmbienceViz];
 let visualizerToggleButtons = [];
 
+const barWidth = 12;
+let barAmnt = 0;
+const barSpacing = 2;
+// let vizReady = 0;
+// array of x coords for each bars x origin
+let barCoords = [];
+
 let runBarVisualizer;
 let drawBarsUpdate;
 
-setTimeout(loaded, 100);
+retireveSettings();
 
-function loaded() {
-  websiteConfig = getCurrentPage(window.location.href);
-  retireveSettings();
-  createElements();
-  updateGUI();
-  setInterval(updateGUI, 250);
-}
+// Element creation start
 
+const notificationsBanner = document.body.appendChild(document.createElement('div'));
+notificationsBanner.id = 'Notifications_Banner';
 
-//Defines correct profile based on webpage that is loaded
-function getCurrentPage(url) {
-  if (url.includes('music.youtube')) {
-    return {
-      name: 'YouTube-Music-Config',
-      color: '#FFFFFF',
-      fftUni: 8192,
-      bottom: 72,
-    };
-  } else if (url.includes('youtube')) {
-    return {
-      name: 'YouTube-Config',
-      color: '#FF0000',
-      fftUni: 8192,
-      bottom: 0,
-    };
-  } else {
-    return {
-      name: 'Default-Config',
-      color: '#aaaaaa',
-      fftUni: 16384,
-      bottom: 0,
-    };
+const settingsModalBackground = document.body.appendChild(document.createElement('div'));
+settingsModalBackground.id = 'settings_modal_background';
+const settingsModal = settingsModalBackground.appendChild(document.createElement('div'));
+settingsModal.id = 'settings_modal';
+const settingsTitle = settingsModal.appendChild(document.createElement('div'));
+settingsTitle.id = 'settings_title';
+
+settingsModalBackground.addEventListener('click', (e) => {
+  if (e.target.id === 'settings_modal_background') {
+    hideSettings();
   }
+});
+
+settingsTitle.innerHTML = '<div id="back_button">&#215;</div>Visualizer Settings';
+document.getElementById('back_button').addEventListener('click', () => { hideSettings() });
+
+const vizualizerButtonContainer = settingsModal.appendChild(document.createElement('div'));
+vizualizerButtonContainer.id = 'vizualizer_button_container';
+
+visualizerToggleButtons[visualizers.bars] = vizualizerButtonContainer.appendChild(document.createElement('button'));
+visualizerToggleButtons[visualizers.waves] = vizualizerButtonContainer.appendChild(document.createElement('button'));
+visualizerToggleButtons[visualizers.circle] = vizualizerButtonContainer.appendChild(document.createElement('button'));
+visualizerToggleButtons[visualizers.ambient] = vizualizerButtonContainer.appendChild(document.createElement('button'));
+
+visualizerToggleButtons.forEach((button, vis) => {
+  button.classList.add('Button');
+  button.addEventListener('click', () => { setActiveVisualizer(vis); });
+  switch(vis) {
+    case visualizers.bars:
+      button.innerText = 'Bars';
+      break;
+    case visualizers.waves:
+      button.innerText = 'Waves';
+      break;
+    case visualizers.circle:
+      button.innerText = 'Circle';
+      break;
+    case visualizers.ambient:
+      button.innerText = 'Ambience';
+      break;
+  }
+});
+
+const canvas = document.body.appendChild(document.createElement('canvas'));
+canvas.id = 'canvas1';
+// let playerCanvas = document.getElementById("player").appendChild(document.createElement('canvas')); // might be a youtube music exclusive thing?
+// playerCanvas.id = 'canvas2';
+switch(profile) {
+  case profiles.music:
+    canvas.classList.add('music');
+    break;
+  case profiles.youtube:
+    canvas.classList.add('youtube');
+    // 'ytd-player'
+    break;
+  case profiles.default:
+  default:
+    // ¯\_(ツ)_/¯
+    break;
 }
 
+const canvasCtx = canvas.getContext('2d');
+// const playerCanvasCtx = playerCanvas.getContext('2d');
 
+const ambience = document.body.appendChild(document.createElement('div'));
+ambience.id = 'ambience1';
+ambience.appendChild(document.createElement('div')).id = 'topGlow';
+ambience.appendChild(document.createElement('div')).id = 'bottomGlow';
+ambience.appendChild(document.createElement('div')).id = 'leftGlow';
+ambience.appendChild(document.createElement('div')).id = 'rightGlow';
 
-function createElements() {
+// Element creation end
 
-  document.body.appendChild(document.createElement('div')).id = 'Notifications_Banner';
+updateGUI();
 
-  document.body.appendChild(document.createElement('div')).id = 'settings_modal_background';
-  document.getElementById('settings_modal_background').appendChild(document.createElement('div')).id = 'settings_modal';
-  document.getElementById('settings_modal').appendChild(document.createElement('div')).id = 'settings_title';
+// used as part of a debouncing timeout
+let updateGUITimeoutId = null;
 
-  document.getElementById('settings_modal_background').addEventListener('click', (e) => {
-    if (e.target.id === 'settings_modal_background') {
-      hideSettings();
-    }
-  });
+// Event handling for window resizing, we debounce this to avoid spamming our GUI rescaling logic when resizing the window
+window.addEventListener('resize', () => {
+  // debounce(updateGUI, 250); // TODO: Seperate out some of this logic, not all of this logic needs to be run again on resize
+  window.clearTimeout(updateGUITimeoutId);
+  updateGUITimeoutId = window.setTimeout(updateGUI, 250); // we do this to make sure we only update the gui after 150ms between the last window resize
+});
 
-  document.getElementById('settings_title').innerHTML = '<div id="back_button">&#215;</div>Visualizer Settings';
-  document.getElementById('back_button').addEventListener('click', () => { hideSettings() });
+// const rightButtons = document.getElementById('right-controls').children[1];
+// const buttonElement = rightButtons.appendChild(document.createElement('tp-yt-paper-icon-button')); // The youtube music app takes over from this and populate some more elements for us
+// buttonElement.classList.add('volume', 'style-scope', 'ytmusic-player-bar'); // it doesn't add the classes however so we do that here, we're also using the "volume" class to nab the reactive styles from that
+// buttonElement.children[0].innerHTML = '<svg viewBox="0 0 24 24"><path d="M10 20h4V4h-4v16zm-6 0h4v-8H4v8zM16 9v11h4V9h-4z"></path></svg>'; // here we're injecting the icon itself
 
-  document.getElementById('settings_modal').appendChild(document.createElement('div')).id = 'vizualizer_button_container';
+// // Bind the settings menu event
+// buttonElement.addEventListener("click", (_event) => {
+//   toggleSettings();
+// });
 
-  document.getElementById('vizualizer_button_container').appendChild(document.createElement('div')).id = 'Bar_Visualizer_Button';
-  document.getElementById('vizualizer_button_container').appendChild(document.createElement('div')).id = 'Wave_Visualizer_Button';
-  document.getElementById('vizualizer_button_container').appendChild(document.createElement('div')).id = 'Circle_Visualizer_Button';
-  document.getElementById('vizualizer_button_container').appendChild(document.createElement('div')).id = 'Ambient_Visualizer_Button';
+const miniGuide = document.getElementById('mini-guide');
 
-  visualizerToggleButtons = [document.getElementById('Bar_Visualizer_Button'), document.getElementById('Wave_Visualizer_Button'), document.getElementById('Circle_Visualizer_Button'), document.getElementById('Ambient_Visualizer_Button')];
+var observer = new MutationObserver(() => {
+  if(miniGuide.style.display !== 'none'){
+    canvas.style.left = '0';
+  }
+  if(miniGuide.style.display === 'none'){
+    canvas.style.left = '240px';
+  }
+});
+observer.observe(miniGuide, { attributes: true, childList: false });
 
-  document.getElementById('Bar_Visualizer_Button').classList.add('Button');
-  document.getElementById('Bar_Visualizer_Button').addEventListener('click', () => { setActiveVisualizer(0); });
-  document.getElementById('Bar_Visualizer_Button').innerHTML = 'Bars';
-
-  document.getElementById('Wave_Visualizer_Button').classList.add('Button');
-  document.getElementById('Wave_Visualizer_Button').addEventListener('click', () => { setActiveVisualizer(1); });
-  document.getElementById('Wave_Visualizer_Button').innerHTML = 'Wave';
-
-  document.getElementById('Circle_Visualizer_Button').classList.add('Button');
-  document.getElementById('Circle_Visualizer_Button').addEventListener('click', () => { setActiveVisualizer(2); });
-  document.getElementById('Circle_Visualizer_Button').innerHTML = 'Circle';
-
-  document.getElementById('Ambient_Visualizer_Button').classList.add('Button');
-  document.getElementById('Ambient_Visualizer_Button').addEventListener('click', () => { setActiveVisualizer(3); });
-  document.getElementById('Ambient_Visualizer_Button').innerHTML = 'Ambience';
-
-  document.body.appendChild(document.createElement('canvas')).id = 'canvas1';
-
-  document.body.appendChild(document.createElement('div')).id = 'ambience1';
-  document.getElementById('ambience1').appendChild(document.createElement('div')).id = 'topGlow';
-  document.getElementById('ambience1').appendChild(document.createElement('div')).id = 'bottomGlow';
-  document.getElementById('ambience1').appendChild(document.createElement('div')).id = 'leftGlow';
-  document.getElementById('ambience1').appendChild(document.createElement('div')).id = 'rightGlow';
-
-}
-
+// TODO: add buttons for the other sizes (tablet and mobile)
 
 function retireveSettings() {
   try {
@@ -138,7 +194,7 @@ function retireveSettings() {
       setInterval(findActiveAudioSource, 250);
     });
   } catch (error) {
-    console.log('No Data To Retrieve: ', error);
+    console.error('No Data To Retrieve: ', error);
   }
 }
 
@@ -149,14 +205,22 @@ function updateSettings(settings) {
 }
 
 function updateGUI() {
-  document.getElementById('canvas1').style.height = window.innerHeight - websiteConfig.bottom + 'px';
-  document.getElementById('canvas1').setAttribute('height', window.innerHeight - websiteConfig.bottom);
-  document.getElementById('canvas1').setAttribute('width', window.innerWidth);
+  // TODO: update canvas height and width to update when relevant UI updates and consider youtube context
+  canvas.style.height = window.innerHeight - 72 + 'px'; // TODO: updates these magic 72s with proper bottom offset value
+  canvas.setAttribute('height', window.innerHeight - 72);
+  canvas.setAttribute('width', window.innerWidth);
+  calcBars();
 }
 
+
+// const profiles = Object.freeze({
+// 	default: Symbol("default"),
+// 	music: Symbol("music"),
+// 	youtube: Symbol("youtube"),
+// });
+
 function findAudioSources() {
-  const site = websiteConfig.name
-  const connect = (userPreferences.auto_connect && ((site === 'YouTube-Music-Config' && userPreferences.allow_youtube_music) || (site === 'YouTube-Config' && userPreferences.allow_youtube) || (site === 'Default-Config' && userPreferences.allow_other)))
+  const connect = (userPreferences.auto_connect && ((profile === profiles.music && userPreferences.allow_youtube_music) || (profile === profiles.youtube && userPreferences.allow_youtube) || (profile === profiles.default && userPreferences.allow_other)))
   if (connect) {
     const prevMediaElementsLength = mediaElements.length;
     const audioElements = document.getElementsByTagName('audio');
@@ -172,7 +236,7 @@ function findAudioSources() {
         const source = audioCtx.createMediaElementSource(foundMediaElements[i]);
         source.connect(analyser);
         analyser.connect(audioCtx.destination);
-        analyser.fftSize = websiteConfig.fftUni;
+        analyser.fftSize = fftUni;
         const frequencyData = new Uint8Array(analyser.frequencyBinCount);
         const bufferLength = analyser.frequencyBinCount;
         const dataArray = new Uint8Array(bufferLength);
@@ -198,12 +262,16 @@ function findAudioSources() {
 
 function showBanner(txt) {
   setTimeout(() => {
-    document.getElementById('Notifications_Banner').style.bottom = '150px';
-    document.getElementById('Notifications_Banner').innerHTML = txt;
+    notificationsBanner.style.bottom = '150px';
+    notificationsBanner.innerHTML = txt;
   }, 2000);
   setTimeout(() => {
-    document.getElementById('Notifications_Banner').style.bottom = '-100px';
+    notificationsBanner.style.bottom = '-100px';
   }, 7000);
+  setTimeout(() => {
+    // Since this is now off screen we delete it since it won't be used again
+    notificationsBanner.remove();
+  }, 8000);
 }
 
 let previousAudioSource = 0;
@@ -219,42 +287,24 @@ function findActiveAudioSource() {
   return bestSource;
 }
 
-const barWidth = 12;
-let barAmnt = 0;
-const barSpacing = 2;
-let vizReady = 0;
 
-function drawBars() {
-  let barAmntTemp = 0;
-  for (let i = 0; i < window.innerWidth + barSpacing + (barWidth / 2); i += (barWidth + barSpacing)) { barAmntTemp++; }
-  if (barAmntTemp > barAmnt) {
-    for (let i = 0; i < barAmntTemp; i++) {
-      if (barAmntTemp > barAmnt) {
-        const bars = document.createElement('div');
-        bars.setAttribute('id', 'bar' + i);
-        bars.classList.add('bars');
-        document.body.appendChild(bars);
-      }
-      document.getElementById('bar' + i).style.left = (barWidth + barSpacing) * (i - 1) + 'px';
-      document.getElementById('bar' + i).style.bottom = websiteConfig.bottom + 'px';
-      document.getElementById('bar' + i).style.backgroundColor = userPreferences.primary_color || websiteConfig.color;
-    }
-  } else {
-    for (let i = barAmntTemp; i < barAmnt; i++) {
-      document.getElementById('bar' + i).remove();
-    }
+// Calculates the x coord for each bar, needs to be done every time the canvas size changes
+function calcBars() {
+  // Total space needed for each bar
+  const barSpace = barSpacing + barWidth;
+
+  let numberOfBars = Math.floor(canvas.width / barSpace);
+
+  // Calulate offset required to ensure bars are centered
+  let offset = (canvas.width % barSpace) / 2;
+
+  // reset coords
+  barCoords = [];
+
+  // Calculate the x coord for each bar
+  for(let i = 0; i < numberOfBars; i++) {
+    barCoords[i] = (barSpace * i) + offset;
   }
-
-  barAmnt = barAmntTemp;
-  vizReady = barAmnt;
-}
-
-function removeBars() {
-  for (let i = 0; i < barAmnt; i++) {
-    document.getElementById('bar' + i).remove();
-  }
-  barAmnt = 0;
-  vizReady = barAmnt;
 }
 
 let red = 255;
@@ -276,68 +326,91 @@ function cycleColor() {
   return 'rgb(' + red + ',' + green + ',' + blue + ')';
 }
 
+let hue = 0;
+
+function cycleColorHue(alpha = 1) {
+  hue++;
+  if(hue > 359) hue = 0;
+  return `hsla(${hue}, 100%, 50%, ${alpha})`;
+}
+
+let count = 0;
+
 function barVis() {
-  const activeSource = findActiveAudioSource();
-  mediaElements[activeSource].analyser.getByteFrequencyData(mediaElements[activeSource].frequencyData);
-  const barColor = userPreferences.colorCycle ? cycleColor() : userPreferences.primary_color;
-  for (let i = 0; i < barAmnt; i++) {
-    if (vizReady == barAmnt) {
-      const bar = document.getElementById('bar' + i)
-      const formula = Math.ceil(Math.pow(i, 1.25));
-      const frequencyData = mediaElements[activeSource].frequencyData[formula];
-      const pop = ((frequencyData * frequencyData * frequencyData) / (255 * 255 * 255)) * ((window.innerHeight - websiteConfig.bottom) * 0.30) * (userPreferences.max_height / 100);
-      bar.style.height = pop + 'px';
-      bar.style.backgroundColor = barColor;
-    }
+  // Clear canvas
+  canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Set fill colour to relevant colour
+  if(count > 4) {
+    count = 0;
+    canvasCtx.fillStyle = userPreferences.colorCycle ? cycleColorHue(0.7) : userPreferences.primary_color; // TODO: change the cycle colour to a time based thing, this is too fast
   }
+  else {
+    count++;
+  }
+  
+
+  const activeSource = findActiveAudioSource();
+
+  // What does this do? I dunno, makes it work though
+  mediaElements[activeSource].analyser.getByteFrequencyData(mediaElements[activeSource].frequencyData);
+
+  for(let i = 0; i < barCoords.length; i++) {
+    // no idea how this works, was in original code and what it does illudes me, takes the frequency data and turns it into an ampitude
+    const formula = Math.ceil(Math.pow(i, 1.25));
+    const frequencyData = mediaElements[activeSource].frequencyData[formula];
+    const barHeight = ((frequencyData * frequencyData * frequencyData) / (255 * 255 * 255)) * ((canvas.height - 72) * 0.30) * (userPreferences.max_height / 100); // TODO: remove magic 72 from here and update it with bottom offset
+
+    if(barHeight == 0) continue; // if the bar is nothing we simply skip it;
+
+    canvasCtx.fillRect(barCoords[i], canvas.height - barHeight, barWidth, barHeight);
+  }
+  if (visualizerToggles[0]) { window.requestAnimationFrame(barVis); }
 }
 
 function toggleBarVis() {
   if (visualizerToggles[0] == false) {
-    drawBars();
+    canvas.style.display = 'block';
     visualizerToggles[0] = true;
-    runBarVisualizer = setInterval(barVis, 1);
-    drawBarsUpdate = setInterval(drawBars, 500);
+    window.requestAnimationFrame(barVis);
   } else {
-    clearInterval(drawBarsUpdate);
-    clearInterval(runBarVisualizer);
+    canvas.style.display = 'none';
     visualizerToggles[0] = false;
-    removeBars();
   }
 }
 
 function toggleWaveViz() {
   if (visualizerToggles[1] == false) {
-    document.getElementById('canvas1').style.display = 'block';
+    canvas.style.display = 'block';
     visualizerToggles[1] = true;
     window.requestAnimationFrame(waveVis);
   } else {
-    document.getElementById('canvas1').style.display = 'none';
+    canvas.style.display = 'none';
     visualizerToggles[1] = false;
   }
 }
 
 function toggleCircleViz() {
   if (visualizerToggles[2] == false) {
-    document.getElementById('canvas1').style.display = 'block';
+    canvas.style.display = 'block';
     visualizerToggles[2] = true;
     window.requestAnimationFrame(waveVis);
   } else {
-    document.getElementById('canvas1').style.display = 'none';
+    canvas.style.display = 'none';
     visualizerToggles[2] = false;
   }
 }
 
 function waveVis() {
-  const canvasCtx = document.getElementById('canvas1').getContext('2d');
+  // Clear canvas
+  canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
   const WIDTH = window.innerWidth;
-  const HEIGHT = window.innerHeight - websiteConfig.bottom;
+  const HEIGHT = window.innerHeight - 72; // TODO: remove this magic 72 and replace it with bottom offset value
     const activeSource = findActiveAudioSource();
     mediaElements[activeSource].analyser.getByteTimeDomainData(mediaElements[activeSource].dataArray);
     canvasCtx.width = WIDTH;
     canvasCtx.height = HEIGHT;
-    canvasCtx.fillStyle = 'rgba(0, 0, 0, 1)';
-    canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
+    canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
     canvasCtx.strokeStyle = userPreferences.colorCycle ? cycleColor() : userPreferences.primary_color;
     canvasCtx.lineWidth = 3000 / window.innerHeight;
     canvasCtx.shadowColor = '#000';
@@ -375,9 +448,9 @@ function ambientVis() {
   const activeSource = findActiveAudioSource();
   mediaElements[activeSource].analyser.getByteFrequencyData(mediaElements[activeSource].frequencyData);
 
-  document.getElementById('ambience1').style.display = 'block';
-  document.getElementById('ambience1').style.height = window.innerHeight - websiteConfig.bottom + 'px';
-  document.getElementById('ambience1').style.boxShadow = 'inset 0px 0px 500px rgba(255,255,255,' + mediaElements[activeSource].frequencyData[2] / 255 + ')';
+  ambience.style.display = 'block';
+  ambience.style.height = window.innerHeight - 72 + 'px'; // TODO: Update this magic 72 to bottom offset value
+  ambience.style.boxShadow = 'inset 0px 0px 500px rgba(255,255,255,' + mediaElements[activeSource].frequencyData[2] / 255 + ')';
 
   document.getElementById('topGlow').style.boxShadow = '0px 0px 500px 500px rgba(50,50,255,' + (mediaElements[activeSource].frequencyData[8] * mediaElements[activeSource].frequencyData[8]) / (255 * 255) + ')';
   document.getElementById('bottomGlow').style.boxShadow = '0px 0px 500px 500px rgba(255,50,50,' + (mediaElements[activeSource].frequencyData[40] * mediaElements[activeSource].frequencyData[40]) / (255 * 255) + ')';
@@ -393,7 +466,7 @@ function toggleAmbienceViz() {
     visualizerToggles[3] = true;
     runAmbienceVisualizer = setInterval(ambientVis, 1);
   } else {
-    document.getElementById('ambience1').style.display = 'none';
+    ambience.style.display = 'none';
     clearInterval(runAmbienceVisualizer);
     visualizerToggles[3] = false;
   }
@@ -419,7 +492,7 @@ function turnOffAllVisualizers() {
 }
 
 function toggleSettings() {
-  if (document.getElementById('settings_modal_background').style.display == 'flex') {
+  if (settingsModalBackground.style.display == 'flex') {
     hideSettings()
   } else {
     showSettings()
@@ -427,16 +500,16 @@ function toggleSettings() {
 }
 
 function showSettings() {
-  document.getElementById('settings_modal_background').style.display = 'flex';
+  settingsModalBackground.style.display = 'flex';
   setTimeout(() => {
-      document.getElementById('settings_modal_background').style.opacity = 1;
+      settingsModalBackground.style.opacity = 1;
   }, 1)
 }
 
 function hideSettings() {
-  document.getElementById('settings_modal_background').style.opacity = 0;
+  settingsModalBackground.style.opacity = 0;
   setTimeout(() => {
-      document.getElementById('settings_modal_background').style.display = 'none';
+      settingsModalBackground.style.display = 'none';
   }, 500)
 }
 
@@ -577,7 +650,7 @@ function primaryColor() {
 
 function createSettings() {
   settings.map(setting => {
-    document.getElementById('settings_modal').appendChild(document.createElement('div')).id = setting.name;
+    settingsModal.appendChild(document.createElement('div')).id = setting.name;
     document.getElementById(setting.name).classList.add('setting');
     document.getElementById(setting.name).innerText = setting.title;
     if (setting.custom_setting) {
@@ -637,9 +710,9 @@ function keyPressed(e) {
     setActiveVisualizer(3);
   }
 
-  if (keysPressed.includes(escapeKey) && document.getElementById('settings_modal_background').style.display == 'flex') {
+  if (keysPressed.includes(escapeKey) && settingsModalBackground.style.display == 'flex') {
     hideSettings();
-  } else if (keysPressed.includes(escapeKey) && document.getElementById('settings_modal_background').style.display == 'none') {
+  } else if (keysPressed.includes(escapeKey) && settingsModalBackground.style.display == 'none') {
     turnOffAllVisualizers();
   }
 

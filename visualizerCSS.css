@@ -53,6 +53,7 @@ put css in here to reduce the amout of dom manipulation in the js file
 }
 
 .Button{
+    background-color: rgb(26, 26, 26);
     color: #aaaaaa;
     border: 1px solid white;
     width: calc(50% - 24px);
@@ -89,16 +90,42 @@ put css in here to reduce the amout of dom manipulation in the js file
     opacity: 0.8;
 }
 
-#canvas1{
-    z-index: 1502;
+#canvas1 {
+    z-index: 3; /* 3 is the magic number that sits above the UI while still letting the slider nob go over the bars*/
     position: fixed;
     top: 0px;
     left: 0px;
-    background-color:#000000;
-    width:100%;
-    display: none;
+    pointer-events: none; /* This makes sure the canvas doesn't stop the user from using the UI */
+    width: 100%;
+    /* background-color:#000000; */
+    /* display: none; */
+}
+#canvas1.music {
+    bottom: 72px; /* bottom padding for desktop size, overriden below */
+}
+/* #canvas1.youtube {
+    
+} */
+
+/* #canvas2 {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+} */
+
+/* Tablet size */
+@media (max-width: 935px) {
+    #canvas1.music {
+        bottom: 60px;
+    }
 }
 
+/* mobile size */
+@media (max-width: 615px) { 
+    #canvas1.music {
+        z-index: 6; /* on mobile sizes we need to shift it up just a little bit more to get it above the player when the song is focused*/
+    }
+}
 #ambience1{
     position:fixed;
     z-index: 1502;
@@ -233,13 +260,13 @@ put css in here to reduce the amout of dom manipulation in the js file
     /* color:#779ecb; */
     color:#ffffff;
     font-size: 50px;
-    margin-top:80px;
     background-color:#222222;
-    padding-top:20px;
-    padding-bottom:20px;
+    padding-top: 20px;
+    padding-bottom: 20px;
     margin-bottom: 20px;
     position: relative;
     padding-left: 80px;
+    border-radius: 40px 40px 0 0;
 }
 
 #back_button{
@@ -247,8 +274,7 @@ put css in here to reduce the amout of dom manipulation in the js file
     font-size: 50px;
     cursor: pointer;
     position: absolute;
-    right: 15px;
-    top: -65px;
+    right: 20px;
     border: 2px solid white;
     border-radius: 50%;
     height: 50px;
@@ -376,4 +402,9 @@ input::-webkit-inner-spin-button {
         margin-bottom:15px;
     }
 
+}
+
+
+#TEST {
+    width: 25px;
 }

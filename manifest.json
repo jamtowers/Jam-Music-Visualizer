@@ -17,7 +17,8 @@
     {
       "matches": ["https://www.youtube.com/*", "https://music.youtube.com/*"],
       "css":["visualizerCSS.css"],
-      "js": ["visualizer.js"]
+      "js": ["visualizer.js"],
+      "run_at": "document_end"
     }
   ],
   "permissions": [
