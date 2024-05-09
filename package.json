@@ -2,7 +2,7 @@
   "name": "visualizer",
   "version": "1.0.0",
   "description": "DOWNLOAD FROM CHROME WEB STORE:\r https://chrome.google.com/webstore/detail/music-visualizer-for-goog/ofhohcappnjhojpboeamfijglinngdnb?hl=en",
-  "main": "visualizer old.js",
+  "private": true,
   "devDependencies": {
     "@eslint/js": "^9.2.0",
     "eslint": "^8.57.0",
