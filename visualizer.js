@@ -1,4 +1,3 @@
-/* eslint linebreak-style: ["error", "windows"] */
 // Greyson Flippo
 // Ac130veterans@gmail.com
 // GreysonFlippo@gmail.com
@@ -57,14 +56,10 @@ const visualizerToggleFunctions = [toggleBarVis, toggleWaveViz, toggleCircleViz,
 let visualizerToggleButtons = [];
 
 const barWidth = 12;
-let barAmnt = 0;
 const barSpacing = 2;
 // let vizReady = 0;
 // array of x coords for each bars x origin
 let barCoords = [];
-
-let runBarVisualizer;
-let drawBarsUpdate;
 
 retireveSettings();
 
@@ -184,7 +179,6 @@ observer.observe(miniGuide, { attributes: true, childList: false });
 
 function retireveSettings() {
   try {
-    // eslint-disable-next-line no-undef
     chrome.storage.local.get(Object.keys(userPreferences), function(result) {
       userPreferences = {...userPreferences, ...result};
       createSettings();
@@ -200,7 +194,6 @@ function retireveSettings() {
 
 function updateSettings(settings) {
   userPreferences = {...userPreferences, ...settings};
-  // eslint-disable-next-line no-undef
   chrome.storage.local.set({...userPreferences});
 }
 
@@ -599,7 +592,6 @@ function createToggle(setting) {
   switchButton.classList.add('switch');
   switchButton.appendChild(document.createElement('div')).classList.add('switch_handle');
   switchButton.addEventListener('click', () => { toggleSwitch(setting) })
-  // eslint-disable-next-line no-unused-expressions
   userPreferences[setting.setting_value] == false ? switchButton.classList.add('off') : null;
 }
 
@@ -677,8 +669,7 @@ function keyPressed(e) {
   // let openVisualizerKey = 86; // v
   const openVisualizerKey = 113; // f2
   const escapeKey = 27;
-  // eslint-disable-next-line no-unused-vars
-  const devKey = 192; // `
+  // const devKey = 192; // `
 
   const viz1Key = 49; // 1
   const viz2Key = 50; // 2
@@ -718,6 +709,6 @@ function keyPressed(e) {
 
 }
 
-function keyReleased(e) {
+function keyReleased() {
   keysPressed.pop();
 }
