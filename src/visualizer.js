@@ -116,9 +116,22 @@ canvas.id = 'canvas1';
 // let playerCanvas = document.getElementById("player").appendChild(document.createElement('canvas')); // might be a youtube music exclusive thing?
 // playerCanvas.id = 'canvas2';
 switch(profile) {
-  case profiles.music:
+  case profiles.music: {
     canvas.classList.add('music');
+
+    const miniGuide = document.getElementById('mini-guide');
+
+    var observer = new MutationObserver(() => {
+      if (miniGuide.style.display !== 'none') {
+        canvas.style.left = '0';
+      }
+      if (miniGuide.style.display === 'none') {
+        canvas.style.left = '240px';
+      }
+    });
+    observer.observe(miniGuide, { attributes: true, childList: false });
     break;
+  }
   case profiles.youtube:
     canvas.classList.add('youtube');
     // 'ytd-player'
@@ -163,17 +176,6 @@ window.addEventListener('resize', () => {
 //   toggleSettings();
 // });
 
-const miniGuide = document.getElementById('mini-guide');
-
-var observer = new MutationObserver(() => {
-  if(miniGuide.style.display !== 'none'){
-    canvas.style.left = '0';
-  }
-  if(miniGuide.style.display === 'none'){
-    canvas.style.left = '240px';
-  }
-});
-observer.observe(miniGuide, { attributes: true, childList: false });
 
 // TODO: add buttons for the other sizes (tablet and mobile)
 
