@@ -23,14 +23,14 @@ const visualizers = Object.freeze({
  * @enum {symbol}
  */
 const profiles = Object.freeze({
-	default: Symbol("default"),
-	music: Symbol("music"),
-	youtube: Symbol("youtube"),
+  default: Symbol("default"),
+  music: Symbol("music"),
+  youtube: Symbol("youtube"),
 });
 
 let profile = profiles.default;
-if(window.location.href.startsWith('https://music.youtube.com')) profile = profiles.music;
-else if(window.location.href.startsWith('https://youtube.com')) profile = profiles.youtube;
+if (window.location.href.startsWith('https://music.youtube.com')) profile = profiles.music;
+else if (window.location.href.startsWith('https://youtube.com')) profile = profiles.youtube;
 Object.freeze(profile);
 
 // https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode/fftSize
@@ -95,7 +95,7 @@ visualizerToggleButtons[visualizers.ambient] = vizualizerButtonContainer.appendC
 visualizerToggleButtons.forEach((button, vis) => {
   button.classList.add('Button');
   button.addEventListener('click', () => { setActiveVisualizer(vis); });
-  switch(vis) {
+  switch (vis) {
     case visualizers.bars:
       button.innerText = 'Bars';
       break;
@@ -115,7 +115,7 @@ const canvas = document.body.appendChild(document.createElement('canvas'));
 canvas.id = 'canvas1';
 // let playerCanvas = document.getElementById("player").appendChild(document.createElement('canvas')); // might be a youtube music exclusive thing?
 // playerCanvas.id = 'canvas2';
-switch(profile) {
+switch (profile) {
   case profiles.music: {
     canvas.classList.add('music');
 
@@ -181,8 +181,8 @@ window.addEventListener('resize', () => {
 
 function retireveSettings() {
   try {
-    chrome.storage.local.get(Object.keys(userPreferences), function(result) {
-      userPreferences = {...userPreferences, ...result};
+    chrome.storage.local.get(Object.keys(userPreferences), function (result) {
+      userPreferences = { ...userPreferences, ...result };
       createSettings();
       findAudioSources();
       setInterval(findAudioSources, 5000);
@@ -195,8 +195,8 @@ function retireveSettings() {
 }
 
 function updateSettings(settings) {
-  userPreferences = {...userPreferences, ...settings};
-  chrome.storage.local.set({...userPreferences});
+  userPreferences = { ...userPreferences, ...settings };
+  chrome.storage.local.set({ ...userPreferences });
 }
 
 function updateGUI() {
@@ -297,7 +297,7 @@ function calcBars() {
   barCoords = [];
 
   // Calculate the x coord for each bar
-  for(let i = 0; i < numberOfBars; i++) {
+  for (let i = 0; i < numberOfBars; i++) {
     barCoords[i] = (barSpace * i) + offset;
   }
 }
@@ -325,7 +325,7 @@ let hue = 0;
 
 function cycleColorHue(alpha = 1) {
   hue++;
-  if(hue > 359) hue = 0;
+  if (hue > 359) hue = 0;
   return `hsla(${hue}, 100%, 50%, ${alpha})`;
 }
 
@@ -336,27 +336,27 @@ function barVis() {
   canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
 
   // Set fill colour to relevant colour
-  if(count > 4) {
+  if (count > 4) {
     count = 0;
     canvasCtx.fillStyle = userPreferences.colorCycle ? cycleColorHue(0.7) : userPreferences.primary_color; // TODO: change the cycle colour to a time based thing, this is too fast
   }
   else {
     count++;
   }
-  
+
 
   const activeSource = findActiveAudioSource();
 
   // What does this do? I dunno, makes it work though
   mediaElements[activeSource].analyser.getByteFrequencyData(mediaElements[activeSource].frequencyData);
 
-  for(let i = 0; i < barCoords.length; i++) {
+  for (let i = 0; i < barCoords.length; i++) {
     // no idea how this works, was in original code and what it does illudes me, takes the frequency data and turns it into an ampitude
     const formula = Math.ceil(Math.pow(i, 1.25));
     const frequencyData = mediaElements[activeSource].frequencyData[formula];
     const barHeight = ((frequencyData * frequencyData * frequencyData) / (255 * 255 * 255)) * ((canvas.height - 72) * 0.30) * (userPreferences.max_height / 100); // TODO: remove magic 72 from here and update it with bottom offset
 
-    if(barHeight == 0) continue; // if the bar is nothing we simply skip it;
+    if (barHeight == 0) continue; // if the bar is nothing we simply skip it;
 
     canvasCtx.fillRect(barCoords[i], canvas.height - barHeight, barWidth, barHeight);
   }
@@ -401,41 +401,41 @@ function waveVis() {
   canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
   const WIDTH = window.innerWidth;
   const HEIGHT = window.innerHeight - 72; // TODO: remove this magic 72 and replace it with bottom offset value
-    const activeSource = findActiveAudioSource();
-    mediaElements[activeSource].analyser.getByteTimeDomainData(mediaElements[activeSource].dataArray);
-    canvasCtx.width = WIDTH;
-    canvasCtx.height = HEIGHT;
-    canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
-    canvasCtx.strokeStyle = userPreferences.colorCycle ? cycleColor() : userPreferences.primary_color;
-    canvasCtx.lineWidth = 3000 / window.innerHeight;
-    canvasCtx.shadowColor = '#000';
-    canvasCtx.shadowBlur = 1;
-    canvasCtx.shadowOffsetX = 0;
-    canvasCtx.shadowOffsetY = 0;
-    if (visualizerToggles[2]) { canvasCtx.lineWidth = 3; }
-    canvasCtx.beginPath();
-    const sliceWidth = WIDTH / mediaElements[activeSource].bufferLength * 4;
-    const radius1 = HEIGHT / 4;
-    let x = 0;
-    let lastx = WIDTH / 2 + radius1;
-    let lasty = HEIGHT / 2;
+  const activeSource = findActiveAudioSource();
+  mediaElements[activeSource].analyser.getByteTimeDomainData(mediaElements[activeSource].dataArray);
+  canvasCtx.width = WIDTH;
+  canvasCtx.height = HEIGHT;
+  canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+  canvasCtx.strokeStyle = userPreferences.colorCycle ? cycleColor() : userPreferences.primary_color;
+  canvasCtx.lineWidth = 3000 / window.innerHeight;
+  canvasCtx.shadowColor = '#000';
+  canvasCtx.shadowBlur = 1;
+  canvasCtx.shadowOffsetX = 0;
+  canvasCtx.shadowOffsetY = 0;
+  if (visualizerToggles[2]) { canvasCtx.lineWidth = 3; }
+  canvasCtx.beginPath();
+  const sliceWidth = WIDTH / mediaElements[activeSource].bufferLength * 4;
+  const radius1 = HEIGHT / 4;
+  let x = 0;
+  let lastx = WIDTH / 2 + radius1;
+  let lasty = HEIGHT / 2;
 
-    for (let i = mediaElements[activeSource].bufferLength / 2; i < mediaElements[activeSource].bufferLength; i++) {
-      const v = (((mediaElements[activeSource].dataArray[i] / 128.0) - 1) * (userPreferences.max_height / 100)) + 1;
-      const radius2 = radius1 + (v * v * 150) * (HEIGHT / 1500);
-      const y = v * HEIGHT / 2;
-      if (visualizerToggles[2]) {
-          canvasCtx.lineTo((WIDTH / 2) + radius2 * Math.cos(i * (2 * Math.PI) / mediaElements[activeSource].bufferLength * 2), (HEIGHT / 2) + radius2 * Math.sin(i * (2 * Math.PI) / mediaElements[activeSource].bufferLength * 2) * -1);
-      } else {
-          canvasCtx.lineTo(x, y);
-      }
-      lastx = (WIDTH / 2) + radius2 * Math.cos(i * (2 * Math.PI) / mediaElements[activeSource].bufferLength);
-      lasty = (HEIGHT / 2) + radius2 * Math.sin(i * (2 * Math.PI) / mediaElements[activeSource].bufferLength) * -1;
-      x += sliceWidth;
+  for (let i = mediaElements[activeSource].bufferLength / 2; i < mediaElements[activeSource].bufferLength; i++) {
+    const v = (((mediaElements[activeSource].dataArray[i] / 128.0) - 1) * (userPreferences.max_height / 100)) + 1;
+    const radius2 = radius1 + (v * v * 150) * (HEIGHT / 1500);
+    const y = v * HEIGHT / 2;
+    if (visualizerToggles[2]) {
+      canvasCtx.lineTo((WIDTH / 2) + radius2 * Math.cos(i * (2 * Math.PI) / mediaElements[activeSource].bufferLength * 2), (HEIGHT / 2) + radius2 * Math.sin(i * (2 * Math.PI) / mediaElements[activeSource].bufferLength * 2) * -1);
+    } else {
+      canvasCtx.lineTo(x, y);
     }
-    if (visualizerToggles[2]) { canvasCtx.lineTo(lastx, lasty); }
-    canvasCtx.stroke();
-    if (visualizerToggles[2] || visualizerToggles[1]) { window.requestAnimationFrame(waveVis); }
+    lastx = (WIDTH / 2) + radius2 * Math.cos(i * (2 * Math.PI) / mediaElements[activeSource].bufferLength);
+    lasty = (HEIGHT / 2) + radius2 * Math.sin(i * (2 * Math.PI) / mediaElements[activeSource].bufferLength) * -1;
+    x += sliceWidth;
+  }
+  if (visualizerToggles[2]) { canvasCtx.lineTo(lastx, lasty); }
+  canvasCtx.stroke();
+  if (visualizerToggles[2] || visualizerToggles[1]) { window.requestAnimationFrame(waveVis); }
 }
 
 
@@ -497,25 +497,25 @@ function toggleSettings() {
 function showSettings() {
   settingsModalBackground.style.display = 'flex';
   setTimeout(() => {
-      settingsModalBackground.style.opacity = 1;
+    settingsModalBackground.style.opacity = 1;
   }, 1)
 }
 
 function hideSettings() {
   settingsModalBackground.style.opacity = 0;
   setTimeout(() => {
-      settingsModalBackground.style.display = 'none';
+    settingsModalBackground.style.display = 'none';
   }, 500)
 }
 
 function toggleSwitch(setting) {
   const newSetting = !userPreferences[setting.setting_value];
   newSetting ? document.getElementById(setting.name + '_switch').classList.remove('off') : document.getElementById(setting.name + '_switch').classList.add('off')
-  updateSettings({[setting.setting_value]: newSetting});
+  updateSettings({ [setting.setting_value]: newSetting });
 }
 
 function updateNumberSetting(setting_value, value) {
-  updateSettings({[setting_value]: value});
+  updateSettings({ [setting_value]: value });
 }
 
 function updatePrimaryColor(value) {
@@ -530,7 +530,7 @@ function updatePrimaryColor(value) {
     }
   }
   colorSample.style.backgroundColor = getColor(color)
-  updateSettings({primary_color: getColor(color)});
+  updateSettings({ primary_color: getColor(color) });
 }
 
 const settings = [
