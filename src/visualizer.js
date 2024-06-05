@@ -5,17 +5,26 @@
 // updated 4-25-2021
 // https://chrome.google.com/webstore/detail/music-visualizer-for-goog/ofhohcappnjhojpboeamfijglinngdnb
 
+import { calcBars, drawBarVis } from './bar-vis.js';
+import { drawWaveVis, drawCircleVis } from './wave-vis.js';
+
+/** @type {number | null} */
+let activeVisualizer = null;
+
+// TODO: type these params properly
 /**
- * enum for all of the visualizers
- * @readonly
- * @enum {number}
+ * Visualizer callback
+ * @callback drawVisualizerCallback
+ * @param {CanvasRenderingContext2D} canvasCtx
+ * @param {HTMLCanvasElement} canvas
+ * @param {any} audioSource
+ */ 
+
+/**
+ * Array of callbacks for each of the visualisers, array index should match with visualizers enum
+ * @type {drawVisualizerCallback[]}
  */
-const visualizers = Object.freeze({
-  bars: 0,
-  waves: 1,
-  circle: 2,
-  ambient: 3,
-});
+const visualizerDrawers = [drawBarVis, drawWaveVis, drawCircleVis];
 
 /**
  * enum for profiles
@@ -36,91 +45,76 @@ Object.freeze(profile);
 // https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode/fftSize
 const fftUni = 8192;
 
+const mediaElements = [];
+
+let animationFrame = null;
+
+// Audio context can be reused between sources, so we create one global one here
+const audioCtx = new AudioContext();
+
+let previousAudioSource = 0;
+
 let userPreferences = {
   colorCycle: true,
-  auto_connect: true,
-  show_banner: true,
-  primary_color: 'white',
-  max_height: 100,
+  autoConnect: true,
+  showBanner: true,
+  primaryColor: 'white',
+  maxHeight: 100,
   smoothingTimeConstant: 0,
-  allow_youtube: true,
-  allow_youtube_music: true,
-  allow_other: false,
+  allowYoutube: true,
+  allowYoutubeMusic: true,
+  allowOther: false,
   defaultVisualizer: null,
 };
 
-const mediaElements = [];
-//                         bar    wav    cir    amb
-const visualizerToggles = [false, false, false, false];
-const visualizerToggleFunctions = [toggleBarVis, toggleWaveViz, toggleCircleViz, toggleAmbienceViz];
-let visualizerToggleButtons = [];
-
-const barWidth = 12;
-const barSpacing = 2;
-// let vizReady = 0;
-// array of x coords for each bars x origin
-let barCoords = [];
-
-retireveSettings();
-
-// Element creation start
-
-const notificationsBanner = document.body.appendChild(document.createElement('div'));
-notificationsBanner.id = 'Notifications_Banner';
-
-const settingsModalBackground = document.body.appendChild(document.createElement('div'));
-settingsModalBackground.id = 'settings_modal_background';
-const settingsModal = settingsModalBackground.appendChild(document.createElement('div'));
-settingsModal.id = 'settings_modal';
-const settingsTitle = settingsModal.appendChild(document.createElement('div'));
-settingsTitle.id = 'settings_title';
-
-settingsModalBackground.addEventListener('click', (e) => {
-  if (e.target.id === 'settings_modal_background') {
-    hideSettings();
-  }
+// Load saved user preferences and copy them to object above
+const initUserPreferences = chrome.storage.sync.get().then((items) => {
+  // Copy the data retrieved from storage into userPreferences.
+  Object.assign(userPreferences, items);
 });
 
-settingsTitle.innerHTML = '<div id="back_button">&#215;</div>Visualizer Settings';
-document.getElementById('back_button').addEventListener('click', () => { hideSettings() });
-
-const vizualizerButtonContainer = settingsModal.appendChild(document.createElement('div'));
-vizualizerButtonContainer.id = 'vizualizer_button_container';
-
-visualizerToggleButtons[visualizers.bars] = vizualizerButtonContainer.appendChild(document.createElement('button'));
-visualizerToggleButtons[visualizers.waves] = vizualizerButtonContainer.appendChild(document.createElement('button'));
-visualizerToggleButtons[visualizers.circle] = vizualizerButtonContainer.appendChild(document.createElement('button'));
-visualizerToggleButtons[visualizers.ambient] = vizualizerButtonContainer.appendChild(document.createElement('button'));
-
-visualizerToggleButtons.forEach((button, vis) => {
-  button.classList.add('Button');
-  button.addEventListener('click', () => { setActiveVisualizer(vis); });
-  switch (vis) {
-    case visualizers.bars:
-      button.innerText = 'Bars';
-      break;
-    case visualizers.waves:
-      button.innerText = 'Waves';
-      break;
-    case visualizers.circle:
-      button.innerText = 'Circle';
-      break;
-    case visualizers.ambient:
-      button.innerText = 'Ambience';
-      break;
-  }
+// Inject UI
+await fetch(chrome.runtime.getURL('/global-page-elements.html')).then(r => r.text()).then(html => {
+  document.body.insertAdjacentHTML('beforeend', html);
 });
 
-const canvas = document.body.appendChild(document.createElement('canvas'));
-canvas.id = 'canvas1';
-// let playerCanvas = document.getElementById("player").appendChild(document.createElement('canvas')); // might be a youtube music exclusive thing?
-// playerCanvas.id = 'canvas2';
+// Get references for elements we need later on
+
+/** @type {HTMLCanvasElement} */
+const canvas = document.getElementById("canvas1");
+
+/** @type {HTMLDivElement} */
+const settingsModalBackground = document.getElementById("settings-modal-background");
+
+/** @type {HTMLDivElement} */
+const notificationsBanner = document.getElementById("notifications-banner");
+
+/** @type {HTMLDivElement} */
+const primaryColorSample = document.getElementById("primary-color-sample");
+
+var settingsInputs = [];
+settingsInputs = Array.prototype.concat.apply(settingsInputs, document.getElementById("visualizer-settings").getElementsByTagName("input"));
+settingsInputs = Array.prototype.concat.apply(settingsInputs, document.getElementById("visualizer-settings").getElementsByTagName("select"));
+
+const visualizerToggleButtons = document.getElementById("vizualizer-button-container").getElementsByTagName("button");
+
+// Add click events
+
+settingsModalBackground.onclick = (e) => { if (e.target.id === 'settings-modal-background') { hideSettings(); } } //TODO: work out if we need this target check
+document.getElementById("back-button").onclick = hideSettings;
+for (let i = 0; i < visualizerToggleButtons.length; i++) {
+  visualizerToggleButtons[i].onclick = () => setActiveVisualizer(i);
+}
+
+
+// Inject Application specific UI and styles
 switch (profile) {
   case profiles.music: {
     canvas.classList.add('music');
 
     const miniGuide = document.getElementById('mini-guide');
 
+    // TODO: update this to reduce the width of the canvas by 240px as well (note to self, would this be better done through a class?)
     var observer = new MutationObserver(() => {
       if (miniGuide.style.display !== 'none') {
         canvas.style.left = '0';
@@ -130,6 +124,19 @@ switch (profile) {
       }
     });
     observer.observe(miniGuide, { attributes: true, childList: false });
+
+    // const rightButtons = document.getElementById('right-controls').children[1];
+    // const buttonElement = rightButtons.appendChild(document.createElement('tp-yt-paper-icon-button')); // The youtube music app takes over from this and populate some more elements for us
+    // buttonElement.classList.add('volume', 'style-scope', 'ytmusic-player-bar'); // it doesn't add the classes however so we do that here, we're also using the "volume" class to nab the reactive styles from that
+    // buttonElement.children[0].innerHTML = '<svg viewBox="0 0 24 24"><path d="M10 20h4V4h-4v16zm-6 0h4v-8H4v8zM16 9v11h4V9h-4z"></path></svg>'; // here we're injecting the icon itself
+
+    // // Bind the settings menu event
+    // buttonElement.addEventListener("click", (_event) => {
+    //   toggleSettings();
+    // });
+
+
+    // TODO: add buttons for the other sizes (tablet and mobile)
     break;
   }
   case profiles.youtube:
@@ -142,19 +149,143 @@ switch (profile) {
     break;
 }
 
+// Get canvas contexts
 const canvasCtx = canvas.getContext('2d');
+
+// TODO: impliment player canvas
 // const playerCanvasCtx = playerCanvas.getContext('2d');
 
-const ambience = document.body.appendChild(document.createElement('div'));
-ambience.id = 'ambience1';
-ambience.appendChild(document.createElement('div')).id = 'topGlow';
-ambience.appendChild(document.createElement('div')).id = 'bottomGlow';
-ambience.appendChild(document.createElement('div')).id = 'leftGlow';
-ambience.appendChild(document.createElement('div')).id = 'rightGlow';
-
-// Element creation end
-
 updateGUI();
+
+try {
+  await initUserPreferences;
+}
+catch (error) {
+  console.error('Unable to load preferences:', error);
+}
+
+// TODO: Work out if we need these callbacks
+// Initalise audio connection
+findAudioSources();
+setInterval(findAudioSources, 5000);
+findActiveAudioSource();
+setInterval(findActiveAudioSource, 250);
+
+// These are casts that are used for a lot of settings so we define them here to reuse them
+const defaultCast = input => { return input }
+const numberCast = input => { return +input }
+
+// Color handling is used both during init and update so we define the logic here to redude duplication
+const primaryColorHandling = (input) => {
+  // CSS keywords that are valid but we don't want to support in input
+  const unwantedKeywords = ["unset", "initial", "inherit", "transparent", "currentColor"];
+  if(CSS.supports('color', input) && !unwantedKeywords.includes(input)) {
+    primaryColorSample.style.backgroundColor = input; // set background color to match
+    if (primaryColorSample.innerText) primaryColorSample.innerText = ''; // Set innerText to nothing if something was set inside of it
+  }
+  else {
+    console.error("invalid color selected:", input);
+    // Because this color isn't something that's supported we want to let the user know something is wrong with a ? in the color example
+    primaryColorSample.style.backgroundColor = "transparent";
+    primaryColorSample.innerText = '?';
+  }
+}
+
+/**
+ * @typedef settingsInput
+ * @type object
+ * 
+ * @property {string} propertyName Name of property for corresponding property in userPreferences
+ * @property {(input) => any} inputCast Casting function for this setting input
+ * @property {string} inputProp Name of property for corresponding value on input element
+ * @property {(input) => void | undefined} additionalHandling Additional handling for this setting run on update, gets passed current input value
+ * @property {(input) => void | undefined} additionalInitHandling Additional handling for this setting run on initalisation, gets passed current input value
+ */
+
+/**
+ * Keys are the input IDs for the particular setting
+ * @type {Object.<string, settingsInput>}
+ */
+const settingsInputMap = {
+  "max-height": {
+    propertyName: "maxHeight",
+    inputCast: numberCast,
+    inputProp: "value"
+  },
+  "color-cycle": {
+    propertyName: "colorCycle",
+    inputCast: defaultCast,
+    inputProp: "checked"
+  },
+  "primary-color": {
+    propertyName: "primaryColor",
+    inputCast: defaultCast,
+    inputProp: "value",
+    additionalHandling: primaryColorHandling,
+    additionalInitHandling: primaryColorHandling
+  },
+  "auto-connect": {
+    propertyName: "autoConnect",
+    inputCast: defaultCast,
+    inputProp: "checked"
+  },
+  "allow-youtube-music": {
+    propertyName: "allowYoutubeMusic",
+    inputCast: defaultCast,
+    inputProp: "checked"
+  },
+  "allow-youtube": {
+    propertyName: "allowYoutube",
+    inputCast: defaultCast,
+    inputProp: "checked"
+  },
+  "show-banner": {
+    propertyName: "showBanner",
+    inputCast: defaultCast,
+    inputProp: "checked"
+  },
+  "default-visualizer" : {
+    propertyName: "defaultVisualizer",
+    inputCast: (input) => {
+      if(input === "") {
+        return null;
+      }
+      return numberCast(input);
+    },
+    inputProp: "value",
+    additionalInitHandling: (input) => {
+      setActiveVisualizer(input);
+    }
+  }
+}
+
+for(let i = 0; i < settingsInputs.length; i++) {
+  const settingProps = settingsInputMap[settingsInputs[i].id]
+
+  if(settingProps === undefined) {
+    console.error("Input has no setting entry!", settingsInputs[i].id);
+    continue;
+  }
+
+  // Set inital value, if it's null populate it with an empty string
+  if(userPreferences[settingProps.propertyName] !== null) {
+    settingsInputs[i][settingProps.inputProp] = userPreferences[settingProps.propertyName];
+  }
+  else {
+    settingsInputs[i][settingProps.inputProp] = "";
+  }
+
+  // Do any inital handling if it exists
+  if(settingProps.additionalInitHandling) settingProps.additionalInitHandling(userPreferences[settingProps.propertyName]);
+
+  // Bind on change event
+  settingsInputs[i].onchange = () => {
+    userPreferences[settingProps.propertyName] = settingProps.inputCast(settingsInputs[i][settingProps.inputProp]);
+    chrome.storage.sync.set(userPreferences);
+    // Do any additonal handling if it exists
+    if(settingProps.additionalHandling) settingProps.additionalHandling(userPreferences[settingProps.propertyName]);
+  }
+}
 
 // used as part of a debouncing timeout
 let updateGUITimeoutId = null;
@@ -166,56 +297,16 @@ window.addEventListener('resize', () => {
   updateGUITimeoutId = window.setTimeout(updateGUI, 250); // we do this to make sure we only update the gui after 150ms between the last window resize
 });
 
-// const rightButtons = document.getElementById('right-controls').children[1];
-// const buttonElement = rightButtons.appendChild(document.createElement('tp-yt-paper-icon-button')); // The youtube music app takes over from this and populate some more elements for us
-// buttonElement.classList.add('volume', 'style-scope', 'ytmusic-player-bar'); // it doesn't add the classes however so we do that here, we're also using the "volume" class to nab the reactive styles from that
-// buttonElement.children[0].innerHTML = '<svg viewBox="0 0 24 24"><path d="M10 20h4V4h-4v16zm-6 0h4v-8H4v8zM16 9v11h4V9h-4z"></path></svg>'; // here we're injecting the icon itself
-
-// // Bind the settings menu event
-// buttonElement.addEventListener("click", (_event) => {
-//   toggleSettings();
-// });
-
-
-// TODO: add buttons for the other sizes (tablet and mobile)
-
-function retireveSettings() {
-  try {
-    chrome.storage.local.get(Object.keys(userPreferences), function (result) {
-      userPreferences = { ...userPreferences, ...result };
-      createSettings();
-      findAudioSources();
-      setInterval(findAudioSources, 5000);
-      findActiveAudioSource();
-      setInterval(findActiveAudioSource, 250);
-    });
-  } catch (error) {
-    console.error('No Data To Retrieve: ', error);
-  }
-}
-
-function updateSettings(settings) {
-  userPreferences = { ...userPreferences, ...settings };
-  chrome.storage.local.set({ ...userPreferences });
-}
-
 function updateGUI() {
   // TODO: update canvas height and width to update when relevant UI updates and consider youtube context
   canvas.style.height = window.innerHeight - 72 + 'px'; // TODO: updates these magic 72s with proper bottom offset value
   canvas.setAttribute('height', window.innerHeight - 72);
   canvas.setAttribute('width', window.innerWidth);
-  calcBars();
+  calcBars(canvas);
 }
 
-
-// const profiles = Object.freeze({
-// 	default: Symbol("default"),
-// 	music: Symbol("music"),
-// 	youtube: Symbol("youtube"),
-// });
-
 function findAudioSources() {
-  const connect = (userPreferences.auto_connect && ((profile === profiles.music && userPreferences.allow_youtube_music) || (profile === profiles.youtube && userPreferences.allow_youtube) || (profile === profiles.default && userPreferences.allow_other)))
+  const connect = (userPreferences.autoConnect && ((profile === profiles.music && userPreferences.allowYoutubeMusic) || (profile === profiles.youtube && userPreferences.allowYoutube) || (profile === profiles.default && userPreferences.allowOther)))
   if (connect) {
     const prevMediaElementsLength = mediaElements.length;
     const audioElements = document.getElementsByTagName('audio');
@@ -225,7 +316,6 @@ function findAudioSources() {
       if (foundMediaElements[i].id == null || foundMediaElements[i].id == '') {
         foundMediaElements[i].id = 'mediaElement' + mediaElements.length;
 
-        const audioCtx = new AudioContext();
         const analyser = audioCtx.createAnalyser();
         analyser.smoothingTimeConstant = userPreferences.smoothingTimeConstant;
         const source = audioCtx.createMediaElementSource(foundMediaElements[i]);
@@ -250,7 +340,7 @@ function findAudioSources() {
     //new media elements hooked
     if (prevMediaElementsLength < mediaElements.length) {
       const txt = '' + mediaElements.length + ' Audio Sources Connected <br> Press \' f2 \' To Show The Visualizer Menu';
-      userPreferences.show_banner && showBanner(txt);
+      userPreferences.showBanner && showBanner(txt);
     }
   }
 }
@@ -263,13 +353,8 @@ function showBanner(txt) {
   setTimeout(() => {
     notificationsBanner.style.bottom = '-100px';
   }, 7000);
-  setTimeout(() => {
-    // Since this is now off screen we delete it since it won't be used again
-    notificationsBanner.remove();
-  }, 8000);
 }
 
-let previousAudioSource = 0;
 function findActiveAudioSource() {
   let bestSource = previousAudioSource;
   for (let i = 0; i < mediaElements.length; i++) {
@@ -282,45 +367,6 @@ function findActiveAudioSource() {
   return bestSource;
 }
 
-
-// Calculates the x coord for each bar, needs to be done every time the canvas size changes
-function calcBars() {
-  // Total space needed for each bar
-  const barSpace = barSpacing + barWidth;
-
-  let numberOfBars = Math.floor(canvas.width / barSpace);
-
-  // Calulate offset required to ensure bars are centered
-  let offset = (canvas.width % barSpace) / 2;
-
-  // reset coords
-  barCoords = [];
-
-  // Calculate the x coord for each bar
-  for (let i = 0; i < numberOfBars; i++) {
-    barCoords[i] = (barSpace * i) + offset;
-  }
-}
-
-let red = 255;
-let green = 0;
-let blue = 0;
-
-function cycleColor() {
-  if (red == 255) {
-    if (blue > 0) { blue--; } else { green++; }
-  }
-
-  if (green == 255) {
-    if (red > 0) { red--; } else { blue++; }
-  }
-
-  if (blue == 255) {
-    if (green > 0) { green--; } else { red++; }
-  }
-  return 'rgb(' + red + ',' + green + ',' + blue + ')';
-}
-
 let hue = 0;
 
 function cycleColorHue(alpha = 1) {
@@ -329,160 +375,53 @@ function cycleColorHue(alpha = 1) {
   return `hsla(${hue}, 100%, 50%, ${alpha})`;
 }
 
-let count = 0;
-
-function barVis() {
+function runVis() {
   // Clear canvas
   canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Set fill colour to relevant colour
-  if (count > 4) {
-    count = 0;
-    canvasCtx.fillStyle = userPreferences.colorCycle ? cycleColorHue(0.7) : userPreferences.primary_color; // TODO: change the cycle colour to a time based thing, this is too fast
-  }
-  else {
-    count++;
-  }
+  // Set fill/outline colour to relevant colour
+  const colour = userPreferences.colorCycle ? cycleColorHue(0.7) : userPreferences.primaryColor // TODO: change the cycle colour to a time based thing, this is too fast
+  canvasCtx.fillStyle = colour;
+  canvasCtx.strokeStyle = colour;
 
-
+  // TODO: Work out if you need to do this every frame or not
   const activeSource = findActiveAudioSource();
 
-  // What does this do? I dunno, makes it work though
-  mediaElements[activeSource].analyser.getByteFrequencyData(mediaElements[activeSource].frequencyData);
+  // TODO: Check if this can be global
+  const audioSource = mediaElements[activeSource];
 
-  for (let i = 0; i < barCoords.length; i++) {
-    // no idea how this works, was in original code and what it does illudes me, takes the frequency data and turns it into an ampitude
-    const formula = Math.ceil(Math.pow(i, 1.25));
-    const frequencyData = mediaElements[activeSource].frequencyData[formula];
-    const barHeight = ((frequencyData * frequencyData * frequencyData) / (255 * 255 * 255)) * ((canvas.height - 72) * 0.30) * (userPreferences.max_height / 100); // TODO: remove magic 72 from here and update it with bottom offset
+  // Call the drawer function for the active visualizer
+  visualizerDrawers[activeVisualizer](canvasCtx, canvas, audioSource);
 
-    if (barHeight == 0) continue; // if the bar is nothing we simply skip it;
-
-    canvasCtx.fillRect(barCoords[i], canvas.height - barHeight, barWidth, barHeight);
-  }
-  if (visualizerToggles[0]) { window.requestAnimationFrame(barVis); }
+  animationFrame = window.requestAnimationFrame(runVis);
 }
 
-function toggleBarVis() {
-  if (visualizerToggles[0] == false) {
-    canvas.style.display = 'block';
-    visualizerToggles[0] = true;
-    window.requestAnimationFrame(barVis);
-  } else {
-    canvas.style.display = 'none';
-    visualizerToggles[0] = false;
-  }
-}
-
-function toggleWaveViz() {
-  if (visualizerToggles[1] == false) {
-    canvas.style.display = 'block';
-    visualizerToggles[1] = true;
-    window.requestAnimationFrame(waveVis);
-  } else {
-    canvas.style.display = 'none';
-    visualizerToggles[1] = false;
-  }
-}
-
-function toggleCircleViz() {
-  if (visualizerToggles[2] == false) {
-    canvas.style.display = 'block';
-    visualizerToggles[2] = true;
-    window.requestAnimationFrame(waveVis);
-  } else {
-    canvas.style.display = 'none';
-    visualizerToggles[2] = false;
-  }
-}
-
-function waveVis() {
-  // Clear canvas
-  canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
-  const WIDTH = window.innerWidth;
-  const HEIGHT = window.innerHeight - 72; // TODO: remove this magic 72 and replace it with bottom offset value
-  const activeSource = findActiveAudioSource();
-  mediaElements[activeSource].analyser.getByteTimeDomainData(mediaElements[activeSource].dataArray);
-  canvasCtx.width = WIDTH;
-  canvasCtx.height = HEIGHT;
-  canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
-  canvasCtx.strokeStyle = userPreferences.colorCycle ? cycleColor() : userPreferences.primary_color;
-  canvasCtx.lineWidth = 3000 / window.innerHeight;
-  canvasCtx.shadowColor = '#000';
-  canvasCtx.shadowBlur = 1;
-  canvasCtx.shadowOffsetX = 0;
-  canvasCtx.shadowOffsetY = 0;
-  if (visualizerToggles[2]) { canvasCtx.lineWidth = 3; }
-  canvasCtx.beginPath();
-  const sliceWidth = WIDTH / mediaElements[activeSource].bufferLength * 4;
-  const radius1 = HEIGHT / 4;
-  let x = 0;
-  let lastx = WIDTH / 2 + radius1;
-  let lasty = HEIGHT / 2;
-
-  for (let i = mediaElements[activeSource].bufferLength / 2; i < mediaElements[activeSource].bufferLength; i++) {
-    const v = (((mediaElements[activeSource].dataArray[i] / 128.0) - 1) * (userPreferences.max_height / 100)) + 1;
-    const radius2 = radius1 + (v * v * 150) * (HEIGHT / 1500);
-    const y = v * HEIGHT / 2;
-    if (visualizerToggles[2]) {
-      canvasCtx.lineTo((WIDTH / 2) + radius2 * Math.cos(i * (2 * Math.PI) / mediaElements[activeSource].bufferLength * 2), (HEIGHT / 2) + radius2 * Math.sin(i * (2 * Math.PI) / mediaElements[activeSource].bufferLength * 2) * -1);
-    } else {
-      canvasCtx.lineTo(x, y);
-    }
-    lastx = (WIDTH / 2) + radius2 * Math.cos(i * (2 * Math.PI) / mediaElements[activeSource].bufferLength);
-    lasty = (HEIGHT / 2) + radius2 * Math.sin(i * (2 * Math.PI) / mediaElements[activeSource].bufferLength) * -1;
-    x += sliceWidth;
-  }
-  if (visualizerToggles[2]) { canvasCtx.lineTo(lastx, lasty); }
-  canvasCtx.stroke();
-  if (visualizerToggles[2] || visualizerToggles[1]) { window.requestAnimationFrame(waveVis); }
-}
-
-
-function ambientVis() {
-  const activeSource = findActiveAudioSource();
-  mediaElements[activeSource].analyser.getByteFrequencyData(mediaElements[activeSource].frequencyData);
-
-  ambience.style.display = 'block';
-  ambience.style.height = window.innerHeight - 72 + 'px'; // TODO: Update this magic 72 to bottom offset value
-  ambience.style.boxShadow = 'inset 0px 0px 500px rgba(255,255,255,' + mediaElements[activeSource].frequencyData[2] / 255 + ')';
-
-  document.getElementById('topGlow').style.boxShadow = '0px 0px 500px 500px rgba(50,50,255,' + (mediaElements[activeSource].frequencyData[8] * mediaElements[activeSource].frequencyData[8]) / (255 * 255) + ')';
-  document.getElementById('bottomGlow').style.boxShadow = '0px 0px 500px 500px rgba(255,50,50,' + (mediaElements[activeSource].frequencyData[40] * mediaElements[activeSource].frequencyData[40]) / (255 * 255) + ')';
-  document.getElementById('leftGlow').style.boxShadow = '0px 0px 500px 500px rgba(50,255,50,' + (mediaElements[activeSource].frequencyData[160] * mediaElements[activeSource].frequencyData[160]) / (255 * 255) + ')';
-  document.getElementById('rightGlow').style.boxShadow = '0px 0px 500px 500px rgba(255,255,50,' + (mediaElements[activeSource].frequencyData[500] * mediaElements[activeSource].frequencyData[500]) / (255 * 255) + ')';
-}
-
-
-let runAmbienceVisualizer;
-
-function toggleAmbienceViz() {
-  if (visualizerToggles[3] == false) {
-    visualizerToggles[3] = true;
-    runAmbienceVisualizer = setInterval(ambientVis, 1);
-  } else {
-    ambience.style.display = 'none';
-    clearInterval(runAmbienceVisualizer);
-    visualizerToggles[3] = false;
-  }
-}
-
+/**
+ * Sets active visualizer, if null or same as active visualizer will disable visualizer
+ * @param {number | null} vizNum Value to update active visualizer to
+ */
 function setActiveVisualizer(vizNum) {
-  if (!visualizerToggles[vizNum]) {
-    turnOffAllVisualizers();
+  //TODO: don't do this if visualizer is already active
+  if (activeVisualizer !== null) { // if we've changing from an existing visualiser we need to unselect it's button
+    visualizerToggleButtons[activeVisualizer].classList.remove('button-selected');
   }
-  if (mediaElements.length > 0) {
-    visualizerToggleButtons[vizNum].classList.toggle('Button_Selected');
-    visualizerToggleFunctions[vizNum]();
-  };
-}
 
-function turnOffAllVisualizers() {
-  for (let i = 0; i < visualizerToggles.length; i++) {
-    if (visualizerToggles[i]) {
-      visualizerToggleFunctions[i]();
-      visualizerToggleButtons[i].classList.toggle('Button_Selected');
-    }
+  if (activeVisualizer === vizNum || vizNum === null) {
+    // If the visualiser is already active we want to toggle it off
+    window.cancelAnimationFrame(animationFrame); // stop the animation script
+    canvasCtx.clearRect(0, 0, canvas.width, canvas.height); // clear canvas
+    animationFrame = null; // reset animation frame to null (as we use this to check if there is an animation running)
+    activeVisualizer = null;
+    return;
+  }
+
+  activeVisualizer = vizNum;
+  visualizerToggleButtons[activeVisualizer].classList.add('button-selected');
+
+  // animationFrame is the current animation request, if this is null it means that there is no current animation request, so we need to start it
+  if (animationFrame === null) {
+    canvas.style.display = 'block';
+    animationFrame = window.requestAnimationFrame(runVis);
   }
 }
 
@@ -507,158 +446,6 @@ function hideSettings() {
     settingsModalBackground.style.display = 'none';
   }, 500)
 }
-
-function toggleSwitch(setting) {
-  const newSetting = !userPreferences[setting.setting_value];
-  newSetting ? document.getElementById(setting.name + '_switch').classList.remove('off') : document.getElementById(setting.name + '_switch').classList.add('off')
-  updateSettings({ [setting.setting_value]: newSetting });
-}
-
-function updateNumberSetting(setting_value, value) {
-  updateSettings({ [setting_value]: value });
-}
-
-function updatePrimaryColor(value) {
-  const color = value === 'default' ? null : value;
-  const colorSample = document.getElementById('primary_color_sample')
-  colorSample.classList.add('color_sample');
-  const getColor = (color) => {
-    if (!color || color === 'default') {
-      return '#ffffff'
-    } else {
-      return color
-    }
-  }
-  colorSample.style.backgroundColor = getColor(color)
-  updateSettings({ primary_color: getColor(color) });
-}
-
-const settings = [
-  {
-    name: 'max_height',
-    title: 'Height Multiplier',
-    type: 'number',
-    setting_value: 'max_height',
-    multiplier: 100,
-    event: updateNumberSetting,
-  },
-  {
-    name: 'color_cycle',
-    title: 'Color Cycling',
-    type: 'toggle',
-    setting_value: 'colorCycle',
-  },
-  {
-    name: 'primary_color',
-    title: 'Static Visualizer Color',
-    type: 'text',
-    setting_value: 'primary_color',
-    custom_setting: primaryColor,
-    event: updatePrimaryColor,
-  },
-  {
-    name: 'auto_connect',
-    title: 'Connect To Audio',
-    type: 'toggle',
-    setting_value: 'auto_connect',
-  },
-  {
-    name: 'allow_youtube_music',
-    title: 'Connect With YouTube Music',
-    type: 'toggle',
-    setting_value: 'allow_youtube_music',
-  },
-  {
-    name: 'allow_youtube',
-    title: 'Connect With YouTube Video',
-    type: 'toggle',
-    setting_value: 'allow_youtube',
-  },
-  // {
-  //   name: 'allow_other',
-  //   title: 'Try To Connect On Any Website',
-  //   type: 'toggle',
-  //   setting_value: 'allow_other',
-  // },
-  {
-    name: 'show_banner',
-    title: 'Show Audio Connection Banner',
-    type: 'toggle',
-    setting_value: 'show_banner',
-  }
-]
-
-function createToggle(setting) {
-  document.getElementById(setting.name).appendChild(document.createElement('div')).id = setting.name + '_switch';
-  const switchButton = document.getElementById(setting.name + '_switch');
-  switchButton.classList.add('switch');
-  switchButton.appendChild(document.createElement('div')).classList.add('switch_handle');
-  switchButton.addEventListener('click', () => { toggleSwitch(setting) })
-  userPreferences[setting.setting_value] == false ? switchButton.classList.add('off') : null;
-}
-
-function createNumberBox(setting) {
-  document.getElementById(setting.name).appendChild(document.createElement('input')).id = setting.name + '_number';
-  const numberBox = document.getElementById(setting.name + '_number')
-  numberBox.classList.add('number_box');
-  numberBox.type = 'number';
-  numberBox.addEventListener('blur', () => { setting.event(setting.setting_value, numberBox.value * setting.multiplier) })
-  numberBox.value = userPreferences[setting.setting_value] / setting.multiplier;
-}
-
-function createTextBox(setting) {
-  document.getElementById(setting.name).appendChild(document.createElement('input')).id = setting.name + '_text';
-  const textBox = document.getElementById(setting.name + '_text')
-  textBox.classList.add('number_box');
-  textBox.type = 'text';
-  textBox.addEventListener('blur', () => { setting.event(textBox.value) })
-  textBox.value = userPreferences[setting.setting_value] || 'default';
-}
-
-function primaryColor() {
-  document.getElementById('primary_color').appendChild(document.createElement('div')).id = 'primary_color_sample';
-  const colorSample = document.getElementById('primary_color_sample')
-  colorSample.classList.add('color_sample');
-  const getColor = (color) => {
-    if (!color || color === 'default') {
-      return '#ffffff'
-    } else {
-      return color
-    }
-  }
-  colorSample.style.backgroundColor = getColor(userPreferences.primary_color)
-
-  // document.getElementById('primary_color').appendChild(document.createElement('div')).id = 'primary_color_button';
-  // const colorButton = document.getElementById('primary_color_button')
-  // colorButton.classList.add('more_button')
-  // colorButton.innerText = 'Change'
-
-  document.getElementById('primary_color').appendChild(document.createElement('input')).id = 'primary_color' + '_text';
-  const textBox = document.getElementById('primary_color' + '_text')
-  textBox.classList.add('number_box');
-  textBox.type = 'text';
-  textBox.addEventListener('blur', () => { updatePrimaryColor(textBox.value) })
-  textBox.value = userPreferences.primary_color || 'default';
-  textBox.style.right = '142px';
-}
-
-function createSettings() {
-  settings.map(setting => {
-    settingsModal.appendChild(document.createElement('div')).id = setting.name;
-    document.getElementById(setting.name).classList.add('setting');
-    document.getElementById(setting.name).innerText = setting.title;
-    if (setting.custom_setting) {
-      setting.custom_setting()
-    } else if (setting.type == 'toggle') {
-      createToggle(setting)
-    } else if (setting.type == 'number') {
-      createNumberBox(setting)
-    } else if (setting.type == 'text') {
-      createTextBox(setting)
-    }
-  })
-}
-
 
 const keysPressed = [];
 
@@ -706,7 +493,7 @@ function keyPressed(e) {
   if (keysPressed.includes(escapeKey) && settingsModalBackground.style.display == 'flex') {
     hideSettings();
   } else if (keysPressed.includes(escapeKey) && settingsModalBackground.style.display == 'none') {
-    turnOffAllVisualizers();
+    setActiveVisualizer(null);
   }
 
 }

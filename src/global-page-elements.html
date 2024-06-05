@@ -1,0 +1,64 @@
+<div id="notifications-banner"></div>
+<div id="settings-modal-background">
+  <div id="settings-modal">
+    <div id="settings-title"> <!-- TODO: make this a header tag -->
+      <div id="back-button">&#215;</div> <!-- TODO: make this a button tag -->
+      Visualizer Settings
+    </div>
+    <div id="vizualizer-button-container">
+      <button>Bars</button>
+      <button>Waves</button>
+      <button>Circle</button>
+      <!-- <button>Ambience</button> -->
+    </div>
+    <div id="visualizer-settings">
+      <label>
+        Height multiplier
+        <span class="spacer"></span>
+        <input id="max-height" type="number">
+      </label>
+      <label>
+        Color cycling
+        <span class="spacer"></span>
+        <input type="checkbox" id="color-cycle" />
+      </label>
+      <label>
+        Static visualizer color
+        <span class="spacer"></span>
+        <input id="primary-color" type="text">
+        <div id="primary-color-sample" class="color-sample"></div>
+      </label>
+      <label>
+        Connect to audio
+        <span class="spacer"></span>
+        <input type="checkbox" id="auto-connect" />
+      </label>
+      <label>
+        Connect with YouTube Music
+        <span class="spacer"></span>
+        <input type="checkbox" id="allow-youtube-music" />
+      </label>
+      <label>
+        Connect with YouTube video
+        <span class="spacer"></span>
+        <input type="checkbox" id="allow-youtube" />
+      </label>
+      <label>
+        Show audio connection banner
+        <span class="spacer"></span>
+        <input type="checkbox" id="show-banner" />
+      </label>
+      <label>
+        Default enabled visualizer
+        <span class="spacer"></span>
+        <select id="default-visualizer">
+          <option value="" selected>None</option>
+          <option value="0">Bars</option>
+          <option value="1">Waves</option>
+          <option value="2">Circle</option>
+        </select>
+      </label>
+    </div>
+  </div>
+</div>
+<canvas id="canvas1"></canvas>
