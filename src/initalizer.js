@@ -2,6 +2,6 @@
 // TLDR is that it lets us use es6 imports without needing to run out code through webpack or anything like that
 
 (async () => {
-  const src = chrome.runtime.getURL("visualizer.js");
+  const src = chrome.runtime.getURL("main.js");
   await import(src);
 })();

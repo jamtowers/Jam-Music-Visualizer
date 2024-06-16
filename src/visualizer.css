@@ -25,14 +25,10 @@
 
 #vizualizer-button-container button:hover{
     background-color: #222222;
-    cursor:pointer;
 }
 
-.button-selected{
-    border: 2px solid rgb(119, 158, 203);
-    width: calc(50% - 26px);
-    padding-top: 14px;
-    padding-bottom: 14px;
+#vizualizer-button-container button.selected {
+    border: 1px solid rgb(119, 158, 203);
     color: white;
 }
 
@@ -92,20 +88,26 @@
     transition: bottom .5s;
 }
 
-#settings-modal-background{
+#settings-modal-background {
     width:100vw;
     height:100vh;
     position: fixed;
     top:0px;
     left:0px;
-    display: none;
+    display: flex;
     opacity: 0;
+    visibility: hidden;
     flex-direction: column;
     align-items: center;
     z-index:1600;
     background-color: rgba(0,0,0,0.4);
     transition: opacity 0.25s;
     overflow-y: scroll;
+}
+
+#settings-modal-background.visible {
+    opacity:  1;
+    visibility: visible;
 }
 
 #settings-modal{

@@ -1,6 +1,9 @@
 DOWNLOAD FROM CHROME WEB STORE:
 https://chrome.google.com/webstore/detail/music-visualizer-for-goog/ofhohcappnjhojpboeamfijglinngdnb?hl=en
 
+Created by Greyson Flippo 2016-06-06 :)
+Rewritten by James Towers 2024-06-16
+
 Feel free to download the source files from here and change around what you like and run the extension as a developer extension.
 All dependent files for the extension to run are present. 
 

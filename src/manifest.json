@@ -1,16 +1,18 @@
 {
   "manifest_version": 3,
   "name": "Music Visualizer for YouTube™ Music",
-  "version": "10.1",
+  "version": "11",
   "description": "Music Visualizer for YouTube Music and YouTube Video. Press ' F2 ' once loaded into a webpage to start visualizing!",
   "web_accessible_resources": [
     {
       "resources": [
-        "images/*",
+        "main.js",
         "visualizer.js",
-        "bar-vis.js",
-        "wave-vis.js",
-        "global-page-elements.html"
+        "shortcuts.js",
+        "images/*",
+        "visualizers/*",
+        "ui/*",
+        "shared/*"
       ],
       "matches": [
         "https://www.youtube.com/*",
@@ -33,7 +35,7 @@
         "visualizer.css"
       ],
       "js": [
-        "main.js"
+        "initalizer.js"
       ],
       "run_at": "document_end"
     }
