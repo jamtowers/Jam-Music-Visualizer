@@ -35,7 +35,7 @@
         "visualizer.css"
       ],
       "js": [
-        "initalizer.js"
+        "initializer.js"
       ],
       "run_at": "document_end"
     }
