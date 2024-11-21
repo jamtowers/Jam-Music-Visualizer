@@ -12,7 +12,15 @@ const videoElements = document.getElementsByTagName('video');
 if (videoElements.length < 1) {
   // I believe the extention should only initalize after the page has fully loaded, so the media elements should exist by this point
   // So in theory we should never hit this
-  throw new Error("No media sources found!");
+
+  // This is here to emulate the timeout functionality of the origonal code, basically we wait here for 5 seconds and if we still don't have a media element then we give up
+  // I have no idea when or if this will happen, really here as a "just in case"
+  await new Promise(r => setTimeout(r, 5000));
+
+  // getElementsByTagName returns a collection that stays in sync with the page, so we don't need to call it again here
+  if (videoElements.length < 1) {
+    throw new Error("No media sources found!");
+  }
 }
 
 // Youtube Music has a single media element and Youtube itself has 2, I'm assuming the first element will always be the correct one, but this might not always be the case
