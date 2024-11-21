@@ -17,10 +17,11 @@ export const primaryColorSample = document.getElementById("primary-color-sample"
 
 export const visualizerToggleButtons = document.getElementById("vizualizer-button-container").getElementsByTagName("button");
 
-/** @type {Array<HTMLSelectElement | HTMLInputElement>} */
+/** @type {Array<HTMLSelectElement | HTMLInputElement | HTMLButtonElement>} */
 export const settingsInputs = [
-  ...Array.from(document.getElementById("visualizer-settings").getElementsByTagName("input")), 
-  ...Array.from(document.getElementById("visualizer-settings").getElementsByTagName("select"))
+  ...Array.from(document.getElementById("visualizer-settings").getElementsByTagName("input")),
+  ...Array.from(document.getElementById("visualizer-settings").getElementsByTagName("select")),
+  ...Array.from(document.getElementById("visualizer-settings").getElementsByTagName("button"))
 ];
 
 /** @type {HTMLDivElement} */

@@ -32,6 +32,12 @@ for (let i = 0; i < visualizerToggleButtons.length; i++) {
 // These are casts that are used for a lot of settings so we define them here to reuse them
 const defaultCast = input => { return input }
 const numberCast = input => { return +input }
+// Since the toggles are buttons and clicking them doesn't change the aria-pressed value itself we need to both invert and convert the value here
+const toggleCast = input => { return input === "false" }
+
+const toggleHandling = (input, inputElement) => {
+  inputElement.ariaPressed = input;
+}
 
 // Color handling is used both during init and update so we define the logic here to reduce duplication
 const primaryColorHandling = (input) => {
@@ -56,7 +62,7 @@ const primaryColorHandling = (input) => {
  * @property {string} propertyName Name of property for corresponding property in userSettings
  * @property {(input) => any} inputCast Casting function for this setting input
  * @property {string} inputProp Name of property for corresponding value on input element
- * @property {((input) => void) | undefined} onChangeHandling Additional handling for this setting run on update, gets passed current input value
+ * @property {((input, inputElement) => void) | undefined} onChangeHandling Additional handling for this setting run on update, gets passed current input value
  * @property {((input) => void) | undefined} initHandling Additional handling for this setting run on initalisation, gets passed current input value
  */
 
@@ -73,35 +79,39 @@ const settingsInputMap = {
   },
   "color-cycle": {
     propertyName: "colorCycle",
-    inputCast: defaultCast,
-    inputProp: "checked"
+    inputCast: toggleCast,
+    inputProp: "ariaPressed",
+    onChangeHandling: toggleHandling
   },
   "primary-color": {
     propertyName: "primaryColor",
-    inputCast: defaultCast,
     inputProp: "value",
     onChangeHandling: primaryColorHandling,
     initHandling: primaryColorHandling
   },
   "auto-connect": {
     propertyName: "autoConnect",
-    inputCast: defaultCast,
-    inputProp: "checked"
+    inputCast: toggleCast,
+    inputProp: "ariaPressed",
+    onChangeHandling: toggleHandling
   },
   "allow-youtube-music": {
     propertyName: "allowYoutubeMusic",
-    inputCast: defaultCast,
-    inputProp: "checked"
+    inputCast: toggleCast,
+    inputProp: "ariaPressed",
+    onChangeHandling: toggleHandling
   },
   "allow-youtube": {
     propertyName: "allowYoutube",
-    inputCast: defaultCast,
-    inputProp: "checked"
+    inputCast: toggleCast,
+    inputProp: "ariaPressed",
+    onChangeHandling: toggleHandling
   },
   "show-banner": {
     propertyName: "showBanner",
-    inputCast: defaultCast,
-    inputProp: "checked",
+    inputCast: toggleCast,
+    inputProp: "ariaPressed",
+    onChangeHandling: toggleHandling,
     initHandling: (input) => {
       if(input) {
         showBanner("Visualizer started; Press F2 to show settings.");
@@ -125,7 +135,7 @@ const settingsInputMap = {
 
 // Bind setting handling
 settingsInputs.forEach((element) => {
-  const { propertyName, inputCast, inputProp, onChangeHandling: additionalHandling, initHandling: additionalInitHandling } = settingsInputMap[element.id];
+  const { propertyName, inputCast = defaultCast, inputProp, onChangeHandling: additionalHandling, initHandling: additionalInitHandling } = settingsInputMap[element.id];
 
   // Set inital value, if it's null populate it with an empty string
   if(userSettings[propertyName] !== null) {
@@ -139,10 +149,14 @@ settingsInputs.forEach((element) => {
   if(additionalInitHandling) additionalInitHandling(userSettings[propertyName]);
 
   // Bind change event
-  element.onchange = () => {
+  const inputEvent = element.tagName === "BUTTON" ? "onclick" : "onchange";
+
+  console.log(inputEvent, element);
+  element[inputEvent] = () => {
+    // Set user setting with new value
     userSettings[propertyName] = inputCast(element[inputProp]);
     chrome.storage.sync.set(userSettings);
     // Do any additonal handling if it exists
-    if(additionalHandling) additionalHandling(userSettings[propertyName]);
+    if(additionalHandling) additionalHandling(userSettings[propertyName], element);
   }
 });
