@@ -1,0 +1,239 @@
+/* Styling for the setting modal */
+
+#settings-modal-background {
+  position: fixed;
+  top: 0px;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 1600;
+  background-color: rgba(0, 0, 0, 0.4);
+  overflow-y: scroll;
+  transition: all 0.25s;
+  opacity: 0;
+  visibility: hidden;
+}
+
+#settings-modal-background.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+#settings-modal {
+  width: 50vw;
+  margin: 10vh 0;
+  background-color: #1a1a1a;
+  border-radius: 40px;
+  min-width: 300px;
+  max-width: 1000px;
+  padding: 0 80px 20px 80px;
+  font-size: 24px;
+}
+
+#settings-title {
+  color: white;
+  font-size: 40px;
+  background-color: #222222;
+  margin: 0 -80px;
+  padding: 20px 0 20px 80px;
+  position: relative;
+  border-radius: 40px 40px 0 0;
+  /* This aligns the x icon to the center of the circle (it's still slightly off but it's close enough) */
+  padding-inline-start: 7px;
+}
+
+#back-button {
+  color: white;
+  font-size: 50px;
+  background-color: inherit;
+  position: absolute;
+  right: 20px;
+  border: 2px solid white;
+  border-radius: 50%;
+  height: 50px;
+  width: 50px;
+  line-height: 1rem;
+  text-align: center;
+}
+
+#back-button:hover {
+  background-color: #333333;
+}
+
+#vizualizer-button-container {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  margin: 16px 0;
+  justify-content: space-between;
+  gap: 8vw;
+}
+
+#vizualizer-button-container button {
+  background-color: rgb(26, 26, 26);
+  color: #aaaaaa;
+  border: 1px solid white;
+  font-size: inherit;
+  padding: 16px 0;
+  border-radius: 10px;
+  text-align: center;
+  flex-grow: 1;
+  flex-basis: 0;
+  max-width: 500px;
+}
+
+#vizualizer-button-container button:hover {
+  background-color: #222222;
+}
+
+#vizualizer-button-container button.selected {
+  border: 1px solid rgb(119, 158, 203);
+  color: white;
+}
+
+#visualizer-settings {
+  color: #cccccc;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-bottom: 16px;
+}
+
+#visualizer-settings>* {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  height: 36px;
+}
+
+
+/* I don't like how I've done the checkboxes here since they don't get highlighted prperly when tabbing through, these should be buttons */
+
+#visualizer-settings input[type="checkbox"] {
+  position: relative;
+  width: 32px;
+  /* This is done to hide the native checkbox so it's just the psudoelements left*/
+  height: 0;
+  border: 2px solid gray;
+  margin: 0 16px;
+}
+
+/* Switch rail */
+#visualizer-settings input[type="checkbox"]::before {
+  content: '';
+  position: absolute;
+  height: 16px;
+  width: 38px;
+  background-color: rgba(119, 158, 203, 0.5);
+  border-radius: 21px;
+  opacity: 0.3;
+  transition: opacity .3s;
+  cursor: pointer;
+  top: -8px;
+}
+
+#visualizer-settings input[type="checkbox"]:checked::before {
+  opacity: 1;
+}
+
+/* Switch handle */
+#visualizer-settings input[type="checkbox"]::after {
+  content: '';
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: rgb(119, 158, 203);
+  left: -12px;
+  top: -16px;
+  transition: left .3s;
+  cursor: pointer;
+}
+
+#visualizer-settings input[type="checkbox"]:checked::after {
+  left: 16px;
+}
+
+#visualizer-settings input[type="number"]::-webkit-outer-spin-button,
+#visualizer-settings input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+#visualizer-settings input[type="number"],
+#visualizer-settings input[type="text"] {
+  /* height: 42px; */
+  padding: 4px 8px;
+  border-radius: 10px;
+  font-size: inherit;
+  text-align: right;
+  width: 100px;
+  border: 0px solid rgba(0, 0, 0, 0);
+  background-color: rgba(0, 0, 0, 0);
+  color: #aaaaaa;
+}
+
+#visualizer-settings input[type="number"]:focus,
+#visualizer-settings input[type="text"]:focus {
+  background-color: rgba(255, 255, 255, 0.1);
+  top: 18px;
+  right: 78px;
+}
+
+.color-sample {
+  height: 34px;
+  width: 34px;
+  border-radius: 5px;
+  border: 1px solid white;
+  text-align: center;
+  color: white;
+}
+
+
+/* settings mobile size styling */
+@media (max-width: 615px) {
+  #settings-modal {
+      font-size: 16px;
+      min-width: 220px;
+      width: 90vw;
+      padding: 0px 20px 10px;
+  }
+
+  #settings-title {
+      font-size: 32px;
+      margin: 0px -20px;
+      padding: 20px 0px 20px 20px;
+  }
+
+  #back-button {
+      font-size: 32px;
+      height: 40px;
+      width: 40px;
+      line-height: 36px;
+      padding: 0;
+  }
+
+  #vizualizer-button-container button {
+      padding: 8px 0;
+      border-radius: 10px;
+  }
+
+
+  /* #visualizer-settings {
+      gap: 40px;
+  }    */
+
+  /* #visualizer-settings>* {
+      gap: 16px;
+  } */
+
+
+/* .color-sample {
+  height: 42px;
+  width: 42px;
+} */
+}

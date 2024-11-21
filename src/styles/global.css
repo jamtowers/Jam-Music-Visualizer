@@ -1,0 +1,17 @@
+#notifications-banner {
+  position: fixed;
+  z-index: 1000;
+  left: 50%;
+  transform: translate(-50%, 0);
+  padding: 1em 2em;
+  background-color: rgba(65, 65, 65, 1);
+  color: #dddddd;
+  text-align: center;
+  border-radius: 30px;
+  font-size: 16px;
+  transition: bottom .5s;
+}
+
+.spacer {
+  flex-grow: 1;
+}

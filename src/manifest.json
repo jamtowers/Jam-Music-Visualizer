@@ -32,7 +32,9 @@
         "https://music.youtube.com/*"
       ],
       "css": [
-        "visualizer.css"
+        "styles/global.css",
+        "styles/settings.css",
+        "styles/canvas.css"
       ],
       "js": [
         "initializer.js"

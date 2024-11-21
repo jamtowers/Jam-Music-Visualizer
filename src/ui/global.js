@@ -7,7 +7,7 @@ await fetch(chrome.runtime.getURL('./ui/global-page-elements.html')).then(r => r
 });
 
 /** @type {HTMLCanvasElement} */
-export const canvas = document.getElementById("canvas1");
+export const canvas = document.getElementById("global-canvas");
 
 /** @type {HTMLDivElement} */
 export const settingsModalBackground = document.getElementById("settings-modal-background");
