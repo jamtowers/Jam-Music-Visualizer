@@ -64,6 +64,7 @@ switch (currentProfile) {
   default:
     // we should never hit the default case, but if we do we log an error and continue like it's a default profile
     console.error("Invalid profile");
+    // eslint-disable-next-line no-fallthrough
   case profiles.default:
     if (userSettings.allowOther) {
       await initalize(import("./ui/other.js"));
