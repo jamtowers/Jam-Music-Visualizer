@@ -23,8 +23,8 @@ export function areSettingsShown () {
   return settingsModalBackground.classList.contains("visible");
 }
 
-settingsModalBackground.onclick = (e) => { if (e.target.id === 'settings-modal-background') { hideSettings(); } } //TODO: work out if we need this target check
-document.getElementById("back-button").onclick = hideSettings;
+settingsModalBackground.onclick = (e) => { if (e.target.id === 'settings-modal-background') { hideSettings(); } }
+document.getElementById("back-button").onclick = () => { hideSettings() };
 for (let i = 0; i < visualizerToggleButtons.length; i++) {
   visualizerToggleButtons[i].onclick = () => setActiveVisualizer(i);
 }
