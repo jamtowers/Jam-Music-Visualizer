@@ -132,7 +132,7 @@ settingsInputs.forEach((element) => {
     element[inputProp] = userSettings[propertyName];
   }
   else {
-    element[profileinputProp] = "";
+    element[inputProp] = "";
   }
 
   // Do any inital handling if it exists
@@ -140,7 +140,7 @@ settingsInputs.forEach((element) => {
 
   // Bind change event
   element.onchange = () => {
-    userSettings[propertyName] = inputCast(element[profileinputProp]);
+    userSettings[propertyName] = inputCast(element[inputProp]);
     chrome.storage.sync.set(userSettings);
     // Do any additonal handling if it exists
     if(additionalHandling) additionalHandling(userSettings[propertyName]);
