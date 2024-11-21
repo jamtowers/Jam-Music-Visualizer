@@ -35,6 +35,6 @@ export const userSettings = await chrome.storage.sync.get().then((items) => {
   let settings = defaultUserSettings;
   Object.assign(settings, items);
   return settings;
-}).catch(() => {
+}).catch((error) => {
   console.error('Unable to load preferences:', error);
 });
