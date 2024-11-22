@@ -40,8 +40,6 @@
   padding: 20px 0 20px 80px;
   position: relative;
   border-radius: 40px 40px 0 0;
-  /* This aligns the x icon to the center of the circle (it's still slightly off but it's close enough) */
-  padding-inline-start: 7px;
 }
 
 #back-button {
@@ -56,6 +54,8 @@
   width: 50px;
   line-height: 1rem;
   text-align: center;
+  /* This aligns the x icon to the center of the circle (it's still slightly off but it's close enough) */
+  padding-inline-start: 7px;
 }
 
 #back-button:hover {
@@ -112,7 +112,7 @@
 }
 
 
-button.switch {
+#visualizer-settings button.switch {
   position: relative;
   width: 40px;
   height: 24px;
@@ -121,7 +121,7 @@ button.switch {
 }
 
 /* switch rail */
-button.switch::after {
+#visualizer-settings button.switch::after {
   content: '';
   position: absolute;
   top: 4px;
@@ -134,7 +134,7 @@ button.switch::after {
 }
 
 /* switch knob */
-button.switch::before {
+#visualizer-settings button.switch::before {
   content: '';
   position: absolute;
   top: 0;
@@ -145,11 +145,11 @@ button.switch::before {
   transition: left .3s;
 }
 
-button.switch[aria-pressed="false"]::before {
+#visualizer-settings button.switch[aria-pressed="false"]::before {
   left: 0px;
 }
 
-button.switch[aria-pressed="true"]::before {
+#visualizer-settings button.switch[aria-pressed="true"]::before {
   left: 16px;
 }
 
@@ -160,75 +160,80 @@ button.switch[aria-pressed="true"]::before {
 }
 
 #visualizer-settings input[type="number"],
-#visualizer-settings input[type="text"] {
-  /* height: 42px; */
+#visualizer-settings input[type="text"],
+#visualizer-settings select {
   padding: 4px 8px;
   border-radius: 10px;
   font-size: inherit;
   text-align: right;
-  width: 100px;
+  width: 16rem;
   border: 0px solid rgba(0, 0, 0, 0);
   background-color: rgba(0, 0, 0, 0);
   color: #aaaaaa;
 }
 
+#visualizer-settings select {
+  display: block;
+  text-align: left;
+  position: relative;
+}
+
 #visualizer-settings input[type="number"]:focus,
-#visualizer-settings input[type="text"]:focus {
+#visualizer-settings input[type="text"]:focus,
+#visualizer-settings select:focus {
   background-color: rgba(255, 255, 255, 0.1);
-  top: 18px;
-  right: 78px;
 }
 
 .color-sample {
-  height: 34px;
-  width: 34px;
+  height: 32px;
+  width: 32px;
   border-radius: 5px;
   border: 1px solid white;
   text-align: center;
   color: white;
+  right: 0;
 }
 
+/* For the awkward sizing between mobile and desktop widths */
+@media (max-width: 1000px) {
+  #settings-modal {
+    font-size: 20px;
+    /* min-width: 220px; */
+    padding: 0px 40px 10px;
+    width: 75vw;
+  }
+
+  #settings-title {
+    margin: 0px -40px;
+    padding: 20px 0px 20px 20px;
+  }
+}
 
 /* settings mobile size styling */
 @media (max-width: 615px) {
   #settings-modal {
-      font-size: 16px;
-      min-width: 220px;
-      width: 90vw;
-      padding: 0px 20px 10px;
+    font-size: 16px;
+    min-width: 220px;
+    width: 90vw;
+    padding: 0px 20px 10px;
   }
 
   #settings-title {
-      font-size: 32px;
-      margin: 0px -20px;
-      padding: 20px 0px 20px 20px;
+    font-size: 32px;
+    margin: 0px -20px;
+    padding: 20px 0px 20px 20px;
   }
 
   #back-button {
-      font-size: 32px;
-      height: 40px;
-      width: 40px;
-      line-height: 36px;
-      padding: 0;
+    font-size: 32px;
+    height: 40px;
+    width: 40px;
+    line-height: 36px;
+    padding: 0;
   }
 
   #vizualizer-button-container button {
-      padding: 8px 0;
-      border-radius: 10px;
+    padding: 8px 0;
+    border-radius: 10px;
   }
-
-
-  /* #visualizer-settings {
-      gap: 40px;
-  }    */
-
-  /* #visualizer-settings>* {
-      gap: 16px;
-  } */
-
-
-/* .color-sample {
-  height: 42px;
-  width: 42px;
-} */
 }
