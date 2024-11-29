@@ -2,11 +2,6 @@ import { userSettings } from './shared/user-settings.js';
 import { currentProfile, profiles } from './shared/profile.js';
 
 /**
- * @typedef ModuleImports
- * @type {[typeof import("./ui/global.js"), ]}
- */
-
-/**
  * Initalizes UI for visualizer
  * @param  {...Promise} profileSpecificInitalization Extra promises for initalizting, this is used for profile specific initalizations
  */
@@ -18,6 +13,13 @@ async function initalize (...profileSpecificInitalization) {
     import("./shortcuts.js"), // Load keyboard shortcuts
     ...profileSpecificInitalization
   ]).then(([globalUI, _visualizer, _shortcuts]) => {
+    // If banner is enabled load it in and show startup message
+    if(userSettings.showBanner) {
+      import("./ui/banner.js").then(({ showBanner }) => {
+        showBanner("Visualizer started; Press F2 to show settings.");
+      });
+    }
+
     // This is the screen resizing logic, it doesn't really have a spot so this is where it's ended up
     import('./visualizers/bar-vis.js').then(({ calcBars }) => {
       function updateCanvasValues() {

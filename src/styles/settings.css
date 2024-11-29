@@ -1,4 +1,4 @@
-/* Styling for the setting modal */
+/* Styling for injected settings modal */
 
 #settings-modal-background {
   position: fixed;
@@ -109,79 +109,6 @@
   align-items: center;
   height: 36px;
   cursor: pointer;
-}
-
-
-#visualizer-settings button.switch {
-  position: relative;
-  width: 40px;
-  height: 24px;
-  background-color: transparent;
-  border: none;
-}
-
-/* switch rail */
-#visualizer-settings button.switch::after {
-  content: '';
-  position: absolute;
-  top: 4px;
-  left: 0;
-  border-radius: 8px;
-  width: 40px;
-  height: 16px;
-  background-color: rgba(119, 158, 203, 0.5);
-  transition: background-color .3s;
-}
-
-/* switch knob */
-#visualizer-settings button.switch::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background-color: rgb(119, 158, 203);
-  transition: left .3s;
-}
-
-#visualizer-settings button.switch[aria-pressed="false"]::before {
-  left: 0px;
-}
-
-#visualizer-settings button.switch[aria-pressed="true"]::before {
-  left: 16px;
-}
-
-#visualizer-settings input[type="number"]::-webkit-outer-spin-button,
-#visualizer-settings input[type="number"]::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-#visualizer-settings input[type="number"],
-#visualizer-settings input[type="text"],
-#visualizer-settings select {
-  padding: 4px 8px;
-  border-radius: 10px;
-  font-size: inherit;
-  text-align: right;
-  width: 16rem;
-  border: 0px solid rgba(0, 0, 0, 0);
-  background-color: rgba(0, 0, 0, 0);
-  color: #aaaaaa;
-}
-
-#visualizer-settings select {
-  display: block;
-  text-align: left;
-  position: relative;
-}
-
-#visualizer-settings input[type="number"]:focus,
-#visualizer-settings input[type="text"]:focus,
-#visualizer-settings select:focus {
-  background-color: rgba(255, 255, 255, 0.1);
 }
 
 .color-sample {

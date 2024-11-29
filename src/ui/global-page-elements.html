@@ -11,7 +11,7 @@
       <button>Circle</button>
       <!-- <button>Ambience</button> -->
     </div>
-    <div id="visualizer-settings">
+    <div id="visualizer-settings" class="options">
       <label>
         Height multiplier
         <span class="spacer"></span>
@@ -29,26 +29,6 @@
         <div id="primary-color-sample" class="color-sample"></div>
       </label>
       <label>
-        Connect to audio
-        <span class="spacer"></span>
-        <button class="switch" id="auto-connect"></button>
-      </label>
-      <label>
-        Connect with YouTube Music
-        <span class="spacer"></span>
-        <button class="switch" id="allow-youtube-music"></button>
-      </label>
-      <label>
-        Connect with YouTube video
-        <span class="spacer"></span>
-        <button class="switch" id="allow-youtube"></button>
-      </label>
-      <label>
-        Show audio connection banner
-        <span class="spacer"></span>
-        <button class="switch" id="show-banner"></button>
-      </label>
-      <label>
         Default enabled visualizer
         <span class="spacer"></span>
         <select id="default-visualizer">
@@ -59,6 +39,7 @@
         </select>
       </label>
     </div>
+    <button id="global-options-button">Open Global Options</button>
   </div>
 </div>
 <canvas id="global-canvas"></canvas>

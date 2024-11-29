@@ -12,13 +12,13 @@
         "images/*",
         "visualizers/*",
         "ui/*",
-        "shared/*"
+        "shared/*",
+        "types/*"
       ],
       "matches": [
         "https://www.youtube.com/*",
         "https://music.youtube.com/*"
       ]
-
     }
   ],
   "icons": {
@@ -34,6 +34,7 @@
       "css": [
         "styles/global.css",
         "styles/settings.css",
+        "styles/inputs.css",
         "styles/canvas.css"
       ],
       "js": [
@@ -42,6 +43,11 @@
       "run_at": "document_end"
     }
   ],
+  "background": {
+    "service_worker": "service-worker.js",
+    "type": "module"
+  },
+  "options_page": "options/options.html",
   "permissions": [
     "storage"
   ]

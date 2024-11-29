@@ -1,7 +1,7 @@
-import { settingsModalBackground, primaryColorSample, settingsInputs, visualizerToggleButtons } from "./global.js"
-import { userSettings } from '../shared/user-settings.js';
+import { settingsModalBackground, primaryColorSample, settingsInputs, visualizerToggleButtons, globalOptionsButton } from "./global.js"
 import { setActiveVisualizer } from "../visualizer.js";
-import { showBanner } from "./banner.js";
+import { bindInput, toggleHandling, toggleCast } from "../shared/bind-input.js";
+import "../types/input-map.js";
 
 function showSettings() {
   settingsModalBackground.classList.add("visible");
@@ -19,6 +19,11 @@ export function toggleSettings() {
   }
 }
 
+globalOptionsButton.onclick = () => {
+  // We can't open the options page from here so we send a message to the service worker to do it for us.
+  chrome.runtime.sendMessage("openGlobalOptions");
+}
+
 export function areSettingsShown () {
   return settingsModalBackground.classList.contains("visible");
 }
@@ -30,14 +35,7 @@ for (let i = 0; i < visualizerToggleButtons.length; i++) {
 }
 
 // These are casts that are used for a lot of settings so we define them here to reuse them
-const defaultCast = input => { return input }
 const numberCast = input => { return +input }
-// Since the toggles are buttons and clicking them doesn't change the aria-pressed value itself we need to both invert and convert the value here
-const toggleCast = input => { return input === "false" }
-
-const toggleHandling = (input, inputElement) => {
-  inputElement.ariaPressed = input;
-}
 
 // Color handling is used both during init and update so we define the logic here to reduce duplication
 const primaryColorHandling = (input) => {
@@ -55,22 +53,7 @@ const primaryColorHandling = (input) => {
   }
 }
 
-/**
- * @typedef settingsInput
- * @type object
- * 
- * @property {string} propertyName Name of property for corresponding property in userSettings
- * @property {(input) => any} inputCast Casting function for this setting input
- * @property {string} inputProp Name of property for corresponding value on input element
- * @property {((input, inputElement) => void) | undefined} onChangeHandling Additional handling for this setting run on update, gets passed current input value
- * @property {((input) => void) | undefined} initHandling Additional handling for this setting run on initalisation, gets passed current input value
- */
-
-
-/**
- * Keys are the input IDs for the particular setting
- * @type {Object.<string, settingsInput>}
- */
+/** @type { inputHandlingMap } */
 const settingsInputMap = {
   "max-height": {
     propertyName: "maxHeight",
@@ -89,36 +72,7 @@ const settingsInputMap = {
     onChangeHandling: primaryColorHandling,
     initHandling: primaryColorHandling
   },
-  "auto-connect": {
-    propertyName: "autoConnect",
-    inputCast: toggleCast,
-    inputProp: "ariaPressed",
-    onChangeHandling: toggleHandling
-  },
-  "allow-youtube-music": {
-    propertyName: "allowYoutubeMusic",
-    inputCast: toggleCast,
-    inputProp: "ariaPressed",
-    onChangeHandling: toggleHandling
-  },
-  "allow-youtube": {
-    propertyName: "allowYoutube",
-    inputCast: toggleCast,
-    inputProp: "ariaPressed",
-    onChangeHandling: toggleHandling
-  },
-  "show-banner": {
-    propertyName: "showBanner",
-    inputCast: toggleCast,
-    inputProp: "ariaPressed",
-    onChangeHandling: toggleHandling,
-    initHandling: (input) => {
-      if(input) {
-        showBanner("Visualizer started; Press F2 to show settings.");
-      }
-    }
-  },
-  "default-visualizer" : {
+  "default-visualizer": {
     propertyName: "defaultVisualizer",
     inputCast: (input) => {
       if(input === "") {
@@ -134,29 +88,4 @@ const settingsInputMap = {
 }
 
 // Bind setting handling
-settingsInputs.forEach((element) => {
-  const { propertyName, inputCast = defaultCast, inputProp, onChangeHandling: additionalHandling, initHandling: additionalInitHandling } = settingsInputMap[element.id];
-
-  // Set inital value, if it's null populate it with an empty string
-  if(userSettings[propertyName] !== null) {
-    element[inputProp] = userSettings[propertyName];
-  }
-  else {
-    element[inputProp] = "";
-  }
-
-  // Do any inital handling if it exists
-  if(additionalInitHandling) additionalInitHandling(userSettings[propertyName]);
-
-  // Bind change event
-  const inputEvent = element.tagName === "BUTTON" ? "onclick" : "onchange";
-
-  console.log(inputEvent, element);
-  element[inputEvent] = () => {
-    // Set user setting with new value
-    userSettings[propertyName] = inputCast(element[inputProp]);
-    chrome.storage.sync.set(userSettings);
-    // Do any additonal handling if it exists
-    if(additionalHandling) additionalHandling(userSettings[propertyName], element);
-  }
-});
+settingsInputs.forEach((element) => { bindInput(element, settingsInputMap); });

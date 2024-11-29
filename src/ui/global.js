@@ -17,6 +17,9 @@ export const primaryColorSample = document.getElementById("primary-color-sample"
 
 export const visualizerToggleButtons = document.getElementById("vizualizer-button-container").getElementsByTagName("button");
 
+/** @type {HTMLButtonElement} */
+export const globalOptionsButton = document.getElementById("global-options-button");
+
 /** @type {Array<HTMLSelectElement | HTMLInputElement | HTMLButtonElement>} */
 export const settingsInputs = [
   ...Array.from(document.getElementById("visualizer-settings").getElementsByTagName("input")),

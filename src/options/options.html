@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>YT Visualiser Options</title>
+    <link rel="stylesheet" href="options.css">
+  </head>
+  <body>
+    <p>These are the global options for the visualiser, for visualiser/site specific options press f2 on the page or use the injected button (if it is enabled).</p>
+    <p>You will need to refresh the page for these options to have an effect.</p>
+    <div id="visualizer-settings" class="options">
+      <label>
+        Connect to audio
+        <span class="spacer"></span>
+        <button class="switch" id="auto-connect" title="This will stop the visualizer from connecting to the audio on the page, realistically you don't want to touch this"></button>
+      </label>
+      <label>
+        Connect with YouTube Music
+        <span class="spacer"></span>
+        <button class="switch" id="allow-youtube-music" title="This will stop the visualizer from loading on YouTube Music pages"></button>
+      </label>
+      <label>
+        Connect with YouTube video
+        <span class="spacer"></span>
+        <button class="switch" id="allow-youtube" title="This will stop the visualizer from loading on YouTube proper pages"></button>
+      </label>
+      <label>
+        Show visualizer started banner
+        <span class="spacer"></span>
+        <button class="switch" id="show-banner"></button>
+      </label>
+    </div>
+    <script type="module" src="options.js"></script>
+  </body>
+</html>
