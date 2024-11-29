@@ -1,5 +1,5 @@
 import { userSettings } from './shared/user-settings.js';
-import { currentProfile, profiles } from './shared/profile.js';
+import { getCurrentProfile, profiles } from './shared/profile.js';
 
 /**
  * Initalizes UI for visualizer
@@ -12,6 +12,7 @@ async function initalize (...profileSpecificInitalization) {
     import("./visualizer.js"), // Load visualizer logic
     import("./shortcuts.js"), // Load keyboard shortcuts
     ...profileSpecificInitalization
+  // eslint-disable-next-line no-unused-vars
   ]).then(([globalUI, _visualizer, _shortcuts]) => {
     // If banner is enabled load it in and show startup message
     if(userSettings.showBanner) {
@@ -46,7 +47,7 @@ async function initalize (...profileSpecificInitalization) {
   });
 }
 
-switch (currentProfile) {
+switch (await getCurrentProfile()) {
   case profiles.music:
     if (userSettings.allowYoutubeMusic) {
       await initalize(import("./ui/ytmusic.js"));

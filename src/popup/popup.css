@@ -1,0 +1,12 @@
+a {
+  color: #0000EE;
+  cursor: pointer;
+}
+
+body {
+  width: 256px;
+}
+
+.hidden {
+  display: none;
+}

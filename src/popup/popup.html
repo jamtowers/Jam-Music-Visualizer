@@ -1,0 +1,24 @@
+<html>
+ <head>
+   <title>YT Music Visualizer</title>
+   <link rel="stylesheet" href="popup.css">
+ </head>
+ <body>
+  <h2>YT Music Visualizer</h2>
+  <div id="irrelevant" class="hidden">
+    <!-- Shown when page isn't a YouTube page of any kind -->
+    <p>This page isn't a YouTube page so the extension isn't active.</p>
+  </div>
+  <div id="disabled" class="hidden">
+    <!-- Shown when extention is disabled for this YT page -->
+    <p>Extension has been disabled for this page, go to the global options to reenable it.</p>
+  </div>
+  <div id="loaded" class="hidden">
+    <!-- Shown when extention is loaded -->
+    <p>Visualizer is enabled and should be loaded. <br /> Press F2 to show the settings or click the button below.</p>
+    <button id="visualizer-settings-button">Open visualizer settings</button>
+  </div>
+  <button id="options-link">Open global options</button>
+  <script type="module" src="popup.js"></script>
+ </body>
+</html>

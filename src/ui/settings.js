@@ -19,6 +19,14 @@ export function toggleSettings() {
   }
 }
 
+chrome.runtime.onMessage.addListener(
+  function(request) {
+    if(request === "openVisualizerSettings") {
+      showSettings();
+    }
+  }
+);
+
 globalOptionsButton.onclick = () => {
   // We can't open the options page from here so we send a message to the service worker to do it for us.
   chrome.runtime.sendMessage("openGlobalOptions");

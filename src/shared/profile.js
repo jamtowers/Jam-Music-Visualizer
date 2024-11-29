@@ -9,8 +9,19 @@ export const profiles = Object.freeze({
   youtube: Symbol("youtube"),
 });
 
-let profile = profiles.default;
-if (window.location.href.startsWith('https://music.youtube.com')) profile = profiles.music;
-else if (window.location.href.startsWith('https://www.youtube.com')) profile = profiles.youtube;
+export async function getCurrentProfile() {
+  let location = "";
 
-export const currentProfile = profile;
+  // Check if we're in a extention instance or service worker as we need to fetch the location differently in those cases
+  if(typeof window === "undefined" || window.location.protocol === "chrome-extension:") {
+    const [tab] = await chrome.tabs.query({active: true, lastFocusedWindow: true});
+    location = tab.url;
+  }
+  else {
+    location = window.location.href;
+  }
+
+  if (location.startsWith('https://music.youtube.com')) return profiles.music;
+  else if (location.startsWith('https://www.youtube.com')) return profiles.youtube;
+  else return profiles.default;
+};

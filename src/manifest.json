@@ -47,8 +47,12 @@
     "service_worker": "service-worker.js",
     "type": "module"
   },
+  "action": {
+    "default_popup": "popup/popup.html"
+  },
   "options_page": "options/options.html",
   "permissions": [
-    "storage"
+    "storage",
+    "activeTab"
   ]
 }
