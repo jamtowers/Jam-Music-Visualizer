@@ -24,7 +24,7 @@ if (videoElements.length < 1) {
 }
 
 // Youtube Music has a single media element and Youtube itself has 2, I'm assuming the first element will always be the correct one, but this might not always be the case
-const mediaElement = videoElements[0];
+export const mediaElement = videoElements[0];
 
 const source = audioCtx.createMediaElementSource(mediaElement);
 
