@@ -7,8 +7,6 @@
   /* This makes sure the canvas doesn't stop the user from using the UI */
   pointer-events: none;
   width: 100%;
-  /* background-color:#000000; */
-  /* display: none; */
 }
 
 #global-canvas.music {
@@ -17,9 +15,9 @@
   /* bottom padding for desktop size, overriden below */
 }
 
-/* #global-canvas.youtube {
-  
-} */
+#global-canvas.youtube {
+  height: 100vh;
+}
 
 /* #canvas2 {
   width: 100%;
@@ -28,16 +26,16 @@
 } */
 
 /* Tablet size */
-@media (max-width: 935px) {
+/* @media (max-width: 935px) {
   #global-canvas.music {
-      /* bottom: 60px; */
+    bottom: 60px;
   }
-}
+} */
 
 /* mobile size */
 @media (max-width: 615px) {
   #global-canvas.music {
-      /* on mobile sizes we need to shift it up just a little bit more to get it above the player when the song is focused*/
+      /* on mobile sizes we need to shift it up just a little bit more to get it above the player when the song is focused */
       z-index: 6;
   }
 }
