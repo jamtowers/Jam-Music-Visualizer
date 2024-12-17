@@ -12,7 +12,7 @@ export const profiles = Object.freeze({
 export async function getCurrentProfile() {
   let location = "";
 
-  // Check if we're in a extention instance or service worker as we need to fetch the location differently in those cases
+  // Check if we're in a extension instance or service worker as we need to fetch the location differently in those cases
   if(typeof window === "undefined" || window.location.protocol === "chrome-extension:") {
     const [tab] = await chrome.tabs.query({active: true, lastFocusedWindow: true});
     location = tab.url;

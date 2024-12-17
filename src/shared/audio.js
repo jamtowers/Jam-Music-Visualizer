@@ -13,10 +13,10 @@ const audioCtx = new AudioContext();
 const videoElements = document.getElementsByTagName('video');
 
 if (videoElements.length < 1) {
-  // I believe the extention should only initalize after the page has fully loaded, so the media elements should exist by this point
+  // I believe the extension should only initialize after the page has fully loaded, so the media elements should exist by this point
   // So in theory we should never hit this
 
-  // This is here to emulate the timeout functionality of the origonal code, basically we wait here for 5 seconds and if we still don't have a media element then we give up
+  // This is here to emulate the timeout functionality of the original code, basically we wait here for 5 seconds and if we still don't have a media element then we give up
   // I have no idea when or if this will happen, really here as a "just in case"
   await new Promise(r => setTimeout(r, 5000));
 
@@ -31,16 +31,16 @@ export const mediaElement = videoElements[0];
 
 const source = audioCtx.createMediaElementSource(mediaElement);
 
-// Analysers can only handle one source at once, but in our case we only deal with one at a time so we only need the one
+// Analyzers can only handle one source at once, but in our case we only deal with one at a time so we only need the one
 export const analyser = audioCtx.createAnalyser();
 analyser.smoothingTimeConstant = userSettings.smoothingTimeConstant;
 analyser.fftSize = fftUni; // Todo: set this from some kind of user setting
 analyser.maxDecibels = -20; // Default value is -30 which is a bit high for maximum volume (it causes the bass on some songs to max out the visualizer)
 
-// Here we're piping the audio source into the analyser
+// Here we're piping the audio source into the analyzer
 source.connect(analyser);
 // Since we're piping the audio into the analyser we need to pipe that into the output explicitly here
-// techically we aren't modifying the auido at all so we could pipe the audio directly from the source to the destination,
+// technically we aren't modifying the audio at all so we could pipe the audio directly from the source to the destination,
 // but I'm keeping it from the analyser in case it adds any delay in the audio, this way the visualizer will stay synced with the audio
 analyser.connect(audioCtx.destination);
 

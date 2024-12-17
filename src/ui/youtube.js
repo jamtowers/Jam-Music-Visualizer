@@ -4,5 +4,5 @@ import { canvas } from "./global.js";
 
 canvas.classList.add('youtube');
 
-// 'ytd-player'
-// TODO: Acutally finish this :)
+// Youtube video player element: 'ytd-player'
+// TODO: Actually finish this :)

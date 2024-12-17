@@ -1,5 +1,5 @@
 // This loads the global elements and exports global elements used in other modules, as we await loading the global elements we only export those elements once they have been loaded into the DOM
-// It could be possible to load the canvas, settings and notification banner seperately and only load them in when needed, but it more efficent to load them all in at once so we're rolling with this
+// It could be possible to load the canvas, settings and notification banner separately and only load them in when needed, but it more efficient to load them all in at once so we're rolling with this
 
 // Inject global UI
 await fetch(chrome.runtime.getURL('./ui/global-page-elements.html')).then(r => r.text()).then(html => {
@@ -15,7 +15,7 @@ export const settingsModalBackground = document.getElementById("settings-modal-b
 /** @type {HTMLDivElement} */
 export const primaryColorSample = document.getElementById("primary-color-sample");
 
-export const visualizerToggleButtons = document.getElementById("vizualizer-button-container").getElementsByTagName("button");
+export const visualizerToggleButtons = document.getElementById("visualizer-button-container").getElementsByTagName("button");
 
 /** @type {HTMLButtonElement} */
 export const globalOptionsButton = document.getElementById("global-options-button");

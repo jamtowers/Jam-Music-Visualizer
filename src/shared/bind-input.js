@@ -5,7 +5,7 @@ const defaultCast = input => { return input }
 export function bindInput(element, inputMap) {
   const { propertyName, inputCast = defaultCast, inputProp, onChangeHandling: additionalHandling, initHandling: additionalInitHandling } = inputMap[element.id];
 
-  // Set inital value, if it's null populate it with an empty string
+  // Set initial value, if it's null populate it with an empty string
   if(userSettings[propertyName] !== null) {
     element[inputProp] = userSettings[propertyName];
   }
@@ -13,7 +13,7 @@ export function bindInput(element, inputMap) {
     element[inputProp] = "";
   }
 
-  // Do any inital handling if it exists
+  // Do any initial handling if it exists
   if(additionalInitHandling) additionalInitHandling(userSettings[propertyName]);
 
   // Bind change event
@@ -23,7 +23,7 @@ export function bindInput(element, inputMap) {
     // Set user setting with new value
     userSettings[propertyName] = inputCast(element[inputProp]);
     chrome.storage.sync.set(userSettings);
-    // Do any additonal handling if it exists
+    // Do any additional handling if it exists
     if(additionalHandling) additionalHandling(userSettings[propertyName], element);
   }
 }

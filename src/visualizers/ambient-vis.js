@@ -1,4 +1,4 @@
-// Note: this is just the functions from visualiser.js that were pulled out when I broke up that file, But I chose not to reimpliment this one just yet, so for the moment the code sits here unused.
+// Note: this is just the functions from visualizer.js that were pulled out when I broke up that file, But I chose not to implement this one just yet, so for the moment the code sits here unused.
 
 function ambientVis() {
   const activeSource = findActiveAudioSource();

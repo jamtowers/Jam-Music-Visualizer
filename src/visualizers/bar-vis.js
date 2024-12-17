@@ -48,7 +48,7 @@ export function calcBars() {
   // reset bars
   bars = new Array(numberOfBars);
 
-  // This next section is a lot of maths that is difficult to explain how it works with inline comments, so I'm going to write out the theory here so it isn't just magic maths terms to the uninitiated
+  // This next section is a lot of math that is difficult to explain how it works with inline comments, so I'm going to write out the theory here so it isn't just magic math terms to the uninitiated
   // Hopefully this will explain what we're trying to do even if the how isn't clear what is happening on any particular step
   // The problem: The frequency data is a lot less interesting at the high frequency range so we want to compress the higher frequencies so the lower frequencies are more spread out
   // The way I am solving this is by breaking the frequency data into a geometric series, this in effect makes the higher frequency bars represent a much larger range than the lower frequencies bars
@@ -56,9 +56,9 @@ export function calcBars() {
   // This is to ensure the frequency data across the screen is consistent even when the screen size changes or the fftUni is increased/decreased
   // To do this we need calculate a first value that is based on the ratio between the buffer length and the number of bars, we then use this to inform what the geometric series ratio should be
   // Unfortunately due to the fact the geometric series equation is polynomial there isn't a straight forward algebraic way to calculate this value
-  // To solve this we use the Newton-Raphson method to approximate the ratio for our target first value
+  // To solve this we use the Newton-Raphson method to approximate the ratio for our target first value, to understand the math properly I recommend Google
 
-  // For those who want to understand the maths I've written the simplified equations in comments above the relevant code
+  // For those who want to understand the math I've written the simplified equations in comments above the relevant code
   // For those these are the terms/base algebra I am using and the variables they align to:
   // From k=0 to n-1, sum(ar^k) = a(1-r^n)/(1-r)
   // sum(ar^k) = S
@@ -106,7 +106,7 @@ export function calcBars() {
   // Starting guess for Ratio
   let geometricRatio = 1.04;
 
-  // The maths breaks when the normalisationMagnitude is 1 as we're effectively targeting a geometric ratio of 1 (which breaks the maths)
+  // The math breaks when the normalisationMagnitude is 1 as we're effectively targeting a geometric ratio of 1 (which breaks the math)
   if(normalisationMagnitude === 1) {
     loops = 101;
     geometricRatio = 1;

@@ -1,0 +1,14 @@
+{
+  "spellright.language": [
+    "en_US"
+  ],
+  "spellright.documentTypes": [
+    "markdown",
+    "latex",
+    "plaintext",
+    "javascript",
+    "html",
+    "json"
+  ],
+  "spellright.notificationClass": "warning"
+}

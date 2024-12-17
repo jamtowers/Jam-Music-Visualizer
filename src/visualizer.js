@@ -32,7 +32,7 @@ mediaElement.addEventListener('play', () => {
 });
 
 mediaElement.addEventListener('pause', () => {
-  // If we have an animation running we stop it on pause to save on CPU useage
+  // If we have an animation running we stop it on pause to save on CPU usage
   if(animationFrame !== null) {
     stopVis();
   }
@@ -42,8 +42,8 @@ function runVis() {
   // Clear canvas
   canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Set fill/outline colour to relevant colour
-  const colour = userSettings.colorCycle ? cycleColorHue(0.7) : userSettings.primaryColor // TODO: change the cycle colour to a time based thing, this is too fast
+  // Set fill/outline color to relevant color
+  const colour = userSettings.colorCycle ? cycleColorHue(0.7) : userSettings.primaryColor // TODO: change the cycle color to a time based thing, this is too fast
   canvasCtx.fillStyle = colour;
   canvasCtx.strokeStyle = colour;
 
@@ -64,12 +64,12 @@ function stopVis() {
  * @param {number | null} vizNum Value to update active visualizer to
  */
 export function setActiveVisualizer(vizNum) {
-  if (activeVisualizer !== null) { // if we've changing from an existing visualiser we need to unselect it's button
+  if (activeVisualizer !== null) { // if we've changing from an existing visualizer we need to deselect it's button
     visualizerToggleButtons[activeVisualizer].classList.remove('selected');
   }
 
   if (activeVisualizer === vizNum || vizNum === null) {
-    // If the visualiser is already active we want to toggle it off
+    // If the visualizer is already active we want to toggle it off
     stopVis();
     activeVisualizer = null;
     return;

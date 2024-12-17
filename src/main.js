@@ -2,16 +2,16 @@ import { userSettings } from './shared/user-settings.js';
 import { getCurrentProfile, profiles } from './shared/profile.js';
 
 /**
- * Initalizes UI for visualizer
- * @param  {...Promise} profileSpecificInitalization Extra promises for initalizting, this is used for profile specific initalizations
+ * Initializes UI for visualizer
+ * @param  {...Promise} profileSpecificInitialization Extra promises for initializing, this is used for profile specific initializations
  */
-async function initalize (...profileSpecificInitalization) {
+async function initalize (...profileSpecificInitialization) {
   return await Promise.all([
-    // Techically most of these gets imported indirectly through the UI initalization, but we import them here for explictness
+    // Technically most of these gets imported indirectly through the UI initialization, but we import them here for explicitness
     import("./ui/global.js"), // Load global UI elements
     import("./visualizer.js"), // Load visualizer logic
     import("./shortcuts.js"), // Load keyboard shortcuts
-    ...profileSpecificInitalization
+    ...profileSpecificInitialization
   // eslint-disable-next-line no-unused-vars
   ]).then(([globalUI, _visualizer, _shortcuts]) => {
     // If banner is enabled load it in and show startup message
@@ -24,7 +24,7 @@ async function initalize (...profileSpecificInitalization) {
     // This is the screen resizing logic, it doesn't really have a spot so this is where it's ended up
     import('./visualizers/bar-vis.js').then(({ calcBars }) => {
       function updateCanvasValues() {
-        // Get the acutal calculated size of the canvas (dictated by css) and set the hight and width attributes accordingly
+        // Get the actual calculated size of the canvas (dictated by css) and set the hight and width attributes accordingly
         const canvasRect = globalUI.canvas.getBoundingClientRect();
         globalUI.canvas.setAttribute('height', canvasRect.height);
         globalUI.canvas.setAttribute('width', canvasRect.width);
@@ -32,7 +32,7 @@ async function initalize (...profileSpecificInitalization) {
         calcBars();
       }
     
-      // Inital setting of canvas values
+      // Initial setting of canvas values
       updateCanvasValues();
     
       // used as part of a debouncing timeout
