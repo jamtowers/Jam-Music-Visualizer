@@ -17,7 +17,7 @@
   border-radius: 8px;
   width: 40px;
   height: 16px;
-  background-color: rgba(119, 158, 203, 0.5);
+  background-color: rgba(var(--accent-color-rgb), 0.5);
   transition: background-color .3s;
 }
 
@@ -29,7 +29,7 @@
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background-color: rgb(119, 158, 203);
+  background-color: var(--accent-color);
   transition: left .3s;
 }
 
@@ -57,7 +57,7 @@
   width: 16rem;
   border: 0px solid rgba(0, 0, 0, 0);
   background-color: rgba(0, 0, 0, 0);
-  color: #aaaaaa;
+  color: inherit;
 }
 
 .options select {
@@ -69,5 +69,10 @@
 .options input[type="number"]:focus,
 .options input[type="text"]:focus,
 .options select:focus {
-  background-color: rgba(255, 255, 255, 0.1);
+  /*
+    Ideally we would do something more sutle than this but the text isn't legible on the dropdown (since the dropdown itself defaults to white and can't be changed but it respects the color style) 
+    It would be possible to just do this for the dropdown but for the sake of consistanty I've done it to all the inputs
+  */
+  background-color: white;
+  color: black;
 }

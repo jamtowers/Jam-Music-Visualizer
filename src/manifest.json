@@ -32,6 +32,7 @@
         "https://music.youtube.com/*"
       ],
       "css": [
+        "styles/shared.css",
         "styles/global.css",
         "styles/settings.css",
         "styles/inputs.css",

@@ -24,7 +24,6 @@
 #settings-modal {
   width: 50vw;
   margin: 10vh 0;
-  background-color: #1a1a1a;
   border-radius: 40px;
   min-width: 300px;
   max-width: 1000px;
@@ -35,7 +34,7 @@
 #settings-title {
   color: white;
   font-size: 40px;
-  background-color: #222222;
+  background-color: var(--highlighted-bg-color);
   margin: 0 -80px;
   padding: 20px 0 20px 80px;
   position: relative;
@@ -55,11 +54,15 @@
   line-height: 1rem;
   text-align: center;
   /* This aligns the x icon to the center of the circle (it's still slightly off but it's close enough) */
-  padding-inline-start: 7px;
+  padding: 0px 0px 0px 2px;
 }
 
 #back-button:hover {
-  background-color: #333333;
+  background-color: var(--button-hover);
+}
+
+#back-button:active {
+  background-color: var(--button-active);
 }
 
 #visualizer-button-container {
@@ -73,9 +76,9 @@
 }
 
 #visualizer-button-container button {
-  background-color: rgb(26, 26, 26);
-  color: #aaaaaa;
-  border: 1px solid white;
+  background-color: inherit;
+  color: inherit;
+  border: 2px solid white;
   font-size: inherit;
   padding: 16px 0;
   border-radius: 10px;
@@ -86,16 +89,20 @@
 }
 
 #visualizer-button-container button:hover {
-  background-color: #222222;
+  background-color: var(--button-hover) !important;
+}
+
+#visualizer-button-container button:active {
+  background-color: var(--button-active);
 }
 
 #visualizer-button-container button.selected {
-  border: 1px solid rgb(119, 158, 203);
+  border: 2px solid rgb(119, 158, 203);
   color: white;
+  background-color: var(--button-selected);
 }
 
 #visualizer-settings {
-  color: #cccccc;
   position: relative;
   display: flex;
   flex-direction: column;
