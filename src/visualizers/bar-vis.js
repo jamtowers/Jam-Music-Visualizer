@@ -106,7 +106,7 @@ export function calcBars() {
   // Starting guess for Ratio
   let geometricRatio = 1.04;
 
-  // The math breaks when the normalisationMagnitude is 1 as we're effectively targeting a geometric ratio of 1 (which breaks the math)
+  // The math breaks when the normalizationMagnitude is 1 as we're effectively targeting a geometric ratio of 1 (which breaks the math)
   if(normalisationMagnitude === 1) {
     loops = 101;
     geometricRatio = 1;
