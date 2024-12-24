@@ -2,7 +2,7 @@ import { drawBarVis } from './visualizers/bar-vis.js';
 import { drawWaveVis, drawCircleVis } from './visualizers/wave-vis.js';
 import { userSettings } from './shared/user-settings.js';
 import { canvas, visualizerToggleButtons } from './ui/global.js';
-import { canvasCtx } from './shared/canvas-context.js';
+import { canvasCtx } from './shared/canvas.js';
 import { mediaElement } from './shared/audio.js';
 
 /** @type {number | null} */

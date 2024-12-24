@@ -1,6 +1,6 @@
 import { canvas } from "../ui/global.js";
 import { analyser, frequencyBinCount, dataArray } from "../shared/audio.js";
-import { canvasCtx } from "../shared/canvas-context.js";
+import { canvasCtx } from "../shared/canvas.js";
 import { userSettings } from "../shared/user-settings.js";
 
 /**
