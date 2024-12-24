@@ -36,7 +36,7 @@ let bars = [];
 /**
  * Calculates the x coord for each bar, needs to be done every time the canvas size or the active canvas itself changes
  */
-export function calcBars() {
+function calcBars() {
   // Total space needed for each bar
   const barSpace = barSpacing + barWidth;
 
@@ -143,7 +143,18 @@ export function calcBars() {
   }
 }
 
-export async function drawBarVis() {
+export function activate() {
+  // This is a synthetic event, it fires on canvas size change, See ../shared/canvas.js for specifics
+  window.addEventListener("recalc", calcBars);
+  // Once we bind the event handler we also want to run the function ourselves to initialize the visualizer
+  calcBars();
+}
+
+export function deactivate() {
+  window.removeEventListener("recalc", calcBars);
+}
+
+export async function drawVis() {
   analyser.getByteFrequencyData(frequencyData);
   bars.forEach(drawBar);
 }

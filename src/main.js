@@ -12,38 +12,13 @@ async function initalize (...profileSpecificInitialization) {
     import("./visualizer.js"), // Load visualizer logic
     import("./shortcuts.js"), // Load keyboard shortcuts
     ...profileSpecificInitialization
-  // eslint-disable-next-line no-unused-vars
-  ]).then(([globalUI, _visualizer, _shortcuts]) => {
+  ]).then(() => {
     // If banner is enabled load it in and show startup message
     if(userSettings.showBanner) {
       import("./ui/banner.js").then(({ showBanner }) => {
         showBanner("Visualizer started; Press F2 to show settings.");
       });
     }
-
-    // This is the screen resizing logic, it doesn't really have a spot so this is where it's ended up
-    import('./visualizers/bar-vis.js').then(({ calcBars }) => {
-      function updateCanvasValues() {
-        // Get the actual calculated size of the canvas (dictated by css) and set the hight and width attributes accordingly
-        const canvasRect = globalUI.canvas.getBoundingClientRect();
-        globalUI.canvas.setAttribute('height', canvasRect.height);
-        globalUI.canvas.setAttribute('width', canvasRect.width);
-        // Calculates values for bars visualization, this might not be the best spot for this
-        calcBars();
-      }
-    
-      // Initial setting of canvas values
-      updateCanvasValues();
-    
-      // used as part of a debouncing timeout
-      let updateGUITimeoutId = null;
-    
-      // Event handling for window resizing, we debounce this to avoid spamming our GUI rescaling logic when resizing the window
-      window.addEventListener('resize', () => {
-        window.clearTimeout(updateGUITimeoutId);
-        updateGUITimeoutId = window.setTimeout(updateCanvasValues, 250);
-      });
-    });
   });
 }
 

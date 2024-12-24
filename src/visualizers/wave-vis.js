@@ -3,29 +3,43 @@ import { analyser, frequencyBinCount, dataArray } from "../shared/audio.js";
 import { canvasCtx } from "../shared/canvas.js";
 import { userSettings } from "../shared/user-settings.js";
 
+// Constants used in the drawing calculation, get recalculated on canvas size change
+let sliceWidth = 0;
+let radius1 = 0;
+let initalx = 0;
+let initaly = 0;
+
+function calcConstants() {
+  canvasCtx.lineWidth = 3000 / canvas.height;
+  sliceWidth = canvas.width / frequencyBinCount * 4;
+  radius1 = canvas.height / 4;
+  initalx = canvas.width / 2 + radius1;
+  initaly = canvas.height / 2;
+}
+
+export function activate() {
+  // This is a synthetic event, it fires on canvas size change, See ../shared/canvas.js for specifics
+  window.addEventListener("recalc", calcConstants);
+  // Once we bind the event handler we also want to run the function ourselves to initialize the constants
+  calcConstants();
+}
+
+export function deactivate() {
+  window.removeEventListener("recalc", calcConstants);
+}
+
 /**
- * 
- * @param {CanvasRenderingContext2D} canvasCtx 
- * @param {boolean} isCircle 
+ * @param {boolean} isCircle If line is getting rendered as a circle or not
  */
-function drawLineVis(isCircle) {
+export function drawLineVis(isCircle) {
   analyser.getByteTimeDomainData(dataArray);
 
-  canvasCtx.lineWidth = 3000 / window.innerHeight;
-
   if(isCircle) canvasCtx.lineWidth = 3;
-
-  // canvasCtx.shadowColor = '#000';
-  // canvasCtx.shadowBlur = 1;
-  // canvasCtx.shadowOffsetX = 0;
-  // canvasCtx.shadowOffsetY = 0;
   
   canvasCtx.beginPath();
-  const sliceWidth = canvas.width / frequencyBinCount * 4;
-  const radius1 = canvas.height / 4;
   let x = 0;
-  let lastx = canvas.width / 2 + radius1;
-  let lasty = canvas.height / 2;
+  let lastx = initalx;
+  let lasty = initaly;
 
   for (let i = frequencyBinCount / 2; i < frequencyBinCount; i++) {
     const v = (((dataArray[i] / 128.0) - 1) * (userSettings.maxHeight / 100)) + 1;
@@ -42,13 +56,4 @@ function drawLineVis(isCircle) {
   }
   if (isCircle) { canvasCtx.lineTo(lastx, lasty); }
   canvasCtx.stroke();
-}
-
-
-export function drawWaveVis() {
-  return drawLineVis(false);
-}
-
-export function drawCircleVis() {
-  return drawLineVis(true);
 }

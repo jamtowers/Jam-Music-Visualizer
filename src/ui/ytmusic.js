@@ -1,13 +1,23 @@
 // YouTube Music specific logic
 
-// import { calcBars } from "../visualizers/bar-vis.js";
-import { canvas } from "./global.js";
+import { canvas, updateCanvasSize } from "./global.js";
 
 canvas.classList.add('music');
 
+let updateCanvasSizeTimeout;
+
+/**
+ * Updates the canvas values, includes a timeout to account for animation times and the like, cancels old timeout if one exists
+ */
+function updateCanvas() {
+  clearTimeout(updateCanvasSizeTimeout);
+  updateCanvasSizeTimeout = setTimeout(() => {
+    updateCanvasSize();
+  }, 400);
+}
+
 const miniGuide = document.getElementById('mini-guide');
 
-// TODO: update this to reduce the width of the canvas by 240px as well (note to self, would this be better done through a class?)
 const miniGuideObserver = new MutationObserver(() => {
   if (miniGuide.style.display !== 'none') {
     canvas.style.left = '0';
@@ -15,38 +25,26 @@ const miniGuideObserver = new MutationObserver(() => {
   if (miniGuide.style.display === 'none') {
     canvas.style.left = '240px';
   }
+  updateCanvasSize();
 });
 miniGuideObserver.observe(miniGuide, { attributes: true, childList: false });
 
-// // This section keeps track on if the player page is open or not, as this can effect if scroll bar is there or not we use this as a chance to recalculate the canvas values
-// const playerBar = document.querySelectorAll('ytmusic-player-bar[slot=player-bar]')[0];
+// This section keeps track on if the player page is open or not, as this can effect if scroll bar is there or not we use this as a chance to recalculate the canvas values
+const playerBar = document.querySelectorAll('ytmusic-player-bar[slot=player-bar]')[0];
 
-// let playerPageOpen = playerBar.hasAttribute("player-page-open");
-// let playerPageOpenTimeout;
+let playerPageOpen = playerBar.hasAttribute("player-page-open");
 
-// const playerBarObserver = new MutationObserver(() => {
-//   console.log("observed");
-//   if(playerBar.hasAttribute("player-page-open") && !playerPageOpen) {
-//     playerPageOpen = true;
-//     clearTimeout(playerPageOpenTimeout);
-//     playerPageOpenTimeout = setTimeout(() => {
-//       calcBars();
-//     }, 400);
-//     console.log("opened");
-//   }
-//   else if(playerPageOpen) {
-//     playerPageOpen = false;
-//     clearTimeout(playerPageOpenTimeout);
-//     playerPageOpenTimeout = setTimeout(() => {
-//       calcBars();
-//     }, 400);
-//     console.log("closed");
-//   }
-//   else {
-//     console.log("something else");
-//   }
-// });
-// playerBarObserver.observe(playerBar, { attributes: true, childList: false });
+const playerBarObserver = new MutationObserver(() => {
+  if(playerBar.hasAttribute("player-page-open") && !playerPageOpen) {
+    playerPageOpen = true;
+    updateCanvas();
+  }
+  else if(playerPageOpen) {
+    playerPageOpen = false;
+    updateCanvas();
+  }
+});
+playerBarObserver.observe(playerBar, { attributes: true, childList: false });
 
 // const rightButtons = document.getElementById('right-controls').children[1];
 // const buttonElement = rightButtons.appendChild(document.createElement('tp-yt-paper-icon-button')); // The youtube music app takes over from this and populate some more elements for us

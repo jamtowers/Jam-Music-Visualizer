@@ -1,5 +1,3 @@
-import { drawBarVis } from './visualizers/bar-vis.js';
-import { drawWaveVis, drawCircleVis } from './visualizers/wave-vis.js';
 import { userSettings } from './shared/user-settings.js';
 import { canvas, visualizerToggleButtons } from './ui/global.js';
 import { canvasCtx } from './shared/canvas.js';
@@ -7,8 +5,20 @@ import { mediaElement } from './shared/audio.js';
 
 /** @type {number | null} */
 let activeVisualizer = null;
+/** 
+ * Callback to visualizer drawing logic for active visualizer
+ * @type {() => void | undefined}
+ */
+let activeVisualizerDrawer = undefined;
+/** 
+ * Cleanup logic for the active visualizer, run when visualizer is changed or turned off
+ * @type {() => void | undefined}
+ */
+let visualizerCleanup = undefined;
 
-const visualizerDrawers = [drawBarVis, drawWaveVis, drawCircleVis];
+const visualizers = ["bar-vis", "line-vis", "circle-vis"];
+
+// const visualizerDrawers = [drawBarVis, drawWaveVis, drawCircleVis];
 
 /**
  * Id of current animation frame of the visualization
@@ -48,7 +58,7 @@ function runVis() {
   canvasCtx.strokeStyle = colour;
 
   // Call the drawer function for the active visualizer
-  visualizerDrawers[activeVisualizer]();
+  activeVisualizerDrawer();
 
   animationFrame = window.requestAnimationFrame(runVis);
 }
@@ -60,6 +70,13 @@ function stopVis() {
 }
 
 /**
+ * @typedef VisualizerModule
+ * @property {() => void} activate Activates event listeners and runs initialization logic for this visualizer
+ * @property {() => void} deactivate Removes any event listeners added for this visualizer
+ * @property {() => void} drawVis Function that draws this visualizer
+ */
+
+/**
  * Sets active visualizer, if null or same as active visualizer will disable visualizer
  * @param {number | null} vizNum Value to update active visualizer to
  */
@@ -68,19 +85,34 @@ export function setActiveVisualizer(vizNum) {
     visualizerToggleButtons[activeVisualizer].classList.remove('selected');
   }
 
+  // If we have any cleanup to do from an existing visualizer we do so here
+  if(visualizerCleanup) {
+    visualizerCleanup();
+    visualizerCleanup = undefined;
+  }
+
   if (activeVisualizer === vizNum || vizNum === null) {
     // If the visualizer is already active we want to toggle it off
     stopVis();
     activeVisualizer = null;
+    activeVisualizerDrawer = undefined
     return;
   }
 
   activeVisualizer = vizNum;
   visualizerToggleButtons[activeVisualizer].classList.add('selected');
 
-  // animationFrame is the current animation request, if this is null it means that there is no current animation request, so we need to start it
-  if (animationFrame === null && mediaElement.paused === false) {
-    canvas.style.display = 'block';
-    animationFrame = window.requestAnimationFrame(runVis);
-  }
+  import(`./visualizers/${visualizers[activeVisualizer]}.js`).then(
+    /** @param {VisualizerModule} visualizer */
+    (visualizer) => {
+      visualizer.activate();
+      activeVisualizerDrawer = visualizer.drawVis;
+      visualizerCleanup = visualizer.deactivate;
+
+      // animationFrame is the current animation request, if this is null it means that there is no current animation request, so we need to start it
+      if (animationFrame === null && mediaElement.paused === false) {
+        canvas.style.display = 'block';
+        animationFrame = window.requestAnimationFrame(runVis);
+      }
+  });
 }
