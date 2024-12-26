@@ -1,0 +1,39 @@
+/* These styles are augments or overrides to the existing YouTube Music styles to either make it work better with the visuaizer or just improve the UI in general */
+
+/* Add dark backdrop to fullscreen controls */
+ytmusic-app-layout[player-fullscreened][show-fullscreen-controls]>[slot=player-bar] {
+  background-color: rgba(0, 0, 0, 0.25);
+  color: white;
+}
+
+/* Sets song time color to match the much more readable song subtext in fullscreen */
+ytmusic-app-layout[player-fullscreened]>[slot=player-bar] .time-info.ytmusic-player-bar {
+  color: var(--ytmusic-overlay-text-secondary);
+}
+
+/* Sets menu button color to be white like the rest in fullscreen */
+ytmusic-app-layout[player-fullscreened]>[slot=player-bar] .menu.ytmusic-player-bar {
+  --iron-icon-fill-color: white;
+}
+
+/* Increases exit fullscreen button size to be similar to the other icons near it */
+ytmusic-app-layout[player-fullscreened]>[slot=player-bar] .exit-fullscreen-button  {
+  width: 60px !important;
+  height: 60px !important;
+}
+
+/* 
+  Supresses the "- var(--ytmusic-scrollbar-width)" that is on this by default,
+  When the player is open (fullscreened or not) we don't need to account for scrollbar width since there is none to account for
+  This appears to be a UI bug within ytMusic itself, so you're welcome Google
+*/
+ytmusic-app-layout[player-page-open]>[slot=player-bar],
+ytmusic-app-layout[player-fullscreened]>[slot=player-bar] {
+  width: 100vw !important;
+}
+
+/* Here we force the player bar to go up an index to let the global visualizer occupy z-index 4,
+  this makes sure popups and such from the player bar stay above the visualizer */
+ytmusic-app-layout>[slot=player-bar] {
+  z-index: 5 !important;
+}

@@ -1,6 +1,5 @@
 #global-canvas {
-  z-index: 3;
-  /* 3 is the magic number that sits above the UI while still letting the slider nob go over the bars */
+  z-index: 4;
   position: fixed;
   top: 0px;
   left: 0px;
@@ -15,6 +14,13 @@
   /* bottom padding for desktop size, overriden below */
 }
 
+#global-canvas.music.player-fullscreened {
+  /* When fullscreened it makes the most sense to just expand to the entire screen */
+  height: 100vh;
+  /* This is to handle when the player is fullscreened when the sidebar is open */
+  left: 0 !important;
+}
+
 #global-canvas.youtube {
   height: 100vh;
 }
@@ -27,15 +33,13 @@
 
 /* Tablet size */
 /* @media (max-width: 935px) {
-  #global-canvas.music {
-    bottom: 60px;
-  }
 } */
 
 /* mobile size */
 @media (max-width: 615px) {
-  #global-canvas.music {
-      /* on mobile sizes we need to shift it up just a little bit more to get it above the player when the song is focused */
-      z-index: 6;
+  #global-canvas.music.player-open {
+    /* on mobile sizes we need to shift it up just a little bit more to get it above the player when the song is focused */
+    z-index: 6;
+    height: 100vh;
   }
 }

@@ -1,6 +1,7 @@
 // YouTube Music specific logic
 
-import { canvas, updateCanvasSize } from "./global.js";
+import { canvas } from "./global.js";
+import { updateCanvasSize } from "../shared/canvas.js";
 
 canvas.classList.add('music');
 
@@ -9,42 +10,46 @@ let updateCanvasSizeTimeout;
 /**
  * Updates the canvas values, includes a timeout to account for animation times and the like, cancels old timeout if one exists
  */
-function updateCanvas() {
+function updateCanvasTimeout() {
   clearTimeout(updateCanvasSizeTimeout);
   updateCanvasSizeTimeout = setTimeout(() => {
     updateCanvasSize();
   }, 400);
 }
 
-const miniGuide = document.getElementById('mini-guide');
+const ytMusicLayout = document.getElementById('layout');
 
-const miniGuideObserver = new MutationObserver(() => {
-  if (miniGuide.style.display !== 'none') {
-    canvas.style.left = '0';
-  }
-  if (miniGuide.style.display === 'none') {
-    canvas.style.left = '240px';
-  }
-  updateCanvasSize();
-});
-miniGuideObserver.observe(miniGuide, { attributes: true, childList: false });
+let playerPageOpen = ytMusicLayout.hasAttribute("player-page-open");
+let playerFullscreened = ytMusicLayout.hasAttribute("player-fullscreened");
 
-// This section keeps track on if the player page is open or not, as this can effect if scroll bar is there or not we use this as a chance to recalculate the canvas values
-const playerBar = document.querySelectorAll('ytmusic-player-bar[slot=player-bar]')[0];
+if(playerPageOpen) canvas.classList.add("player-open");
+if(playerFullscreened) canvas.classList.add("player-fullscreened");
 
-let playerPageOpen = playerBar.hasAttribute("player-page-open");
-
-const playerBarObserver = new MutationObserver(() => {
-  if(playerBar.hasAttribute("player-page-open") && !playerPageOpen) {
+const ytMusicLayoutObserver = new MutationObserver(() => {
+  // Player open handling
+  if(ytMusicLayout.hasAttribute("player-page-open") && !playerPageOpen) {
     playerPageOpen = true;
-    updateCanvas();
+    canvas.classList.add("player-open");
+    updateCanvasTimeout();
   }
-  else if(playerPageOpen) {
+  else if(!ytMusicLayout.hasAttribute("player-page-open") && playerPageOpen ) {
     playerPageOpen = false;
-    updateCanvas();
+    canvas.classList.remove("player-open");
+    updateCanvasTimeout();
+  }
+  // player fullscreened handling
+  if(ytMusicLayout.hasAttribute("player-fullscreened") && !playerFullscreened) {
+    playerFullscreened = true;
+    canvas.classList.add("player-fullscreened");
+    updateCanvasSize();
+  }
+  else if(!ytMusicLayout.hasAttribute("player-fullscreened") && playerFullscreened ) {
+    playerFullscreened = false;
+    canvas.classList.remove("player-fullscreened");
+    updateCanvasSize();
   }
 });
-playerBarObserver.observe(playerBar, { attributes: true, childList: false });
+ytMusicLayoutObserver.observe(ytMusicLayout, { attributes: true, childList: false });
 
 // const rightButtons = document.getElementById('right-controls').children[1];
 // const buttonElement = rightButtons.appendChild(document.createElement('tp-yt-paper-icon-button')); // The youtube music app takes over from this and populate some more elements for us
@@ -55,6 +60,5 @@ playerBarObserver.observe(playerBar, { attributes: true, childList: false });
 // buttonElement.addEventListener("click", (_event) => {
 //   toggleSettings();
 // });
-
 
 // TODO: add buttons for the other sizes (tablet and mobile)
