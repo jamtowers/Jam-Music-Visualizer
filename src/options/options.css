@@ -1,10 +1,6 @@
 @import "../styles/shared.css";
 @import "../styles/inputs.css";
 
-.spacer {
-  flex-grow: 1;
-}
-
 .options {
   display: flex;
   flex-direction: column;
