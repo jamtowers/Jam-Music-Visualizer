@@ -125,7 +125,16 @@ function calcBars() {
   for (let i = 0; i < numberOfBars; i++) {
     const frequencyRange = firstValue * geometricRatio ** i;
 
-    const nextTotal = total + frequencyRange;
+    let nextTotal = total + frequencyRange;
+    let endPercentage = nextTotal % 1;
+
+    // This is a bit of a hack to avoid having the endFrequencyPercentage = 0 (or be close enough to it) as that causes NaN outputs in the draw code
+    // It could be possible to fix this is the drawing code rather than here but doing an extra check here is easier than doing it every bar of every frame
+    // typically this only effects the last bar
+    if(endPercentage < 0.0000001) {
+      nextTotal -= 0.0000001;
+      endPercentage = 1;
+    }
 
     bars[i] = {
       xCoord: offset + (barSpace * i),
@@ -134,7 +143,7 @@ function calcBars() {
         rangeEnd: Math.floor(nextTotal),
         rangeDelta: Math.floor(nextTotal) - Math.floor(total),
         startFrequencyPercentage: 1 - (total % 1),
-        endFrequencyPercentage: nextTotal % 1,
+        endFrequencyPercentage: endPercentage,
         frequencyRangeSize: frequencyRange
       }
     };
