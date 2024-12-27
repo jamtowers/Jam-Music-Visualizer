@@ -1,5 +1,5 @@
 import { canvas } from "../ui/global.js";
-import { analyser, frequencyData, bufferLength } from "../shared/audio.js";
+import { analyser, frequencyData, bufferLength } from "../audio-controllers/audio-context.js";
 import { canvasCtx } from "../shared/canvas.js";
 import { userSettings } from "../shared/user-settings.js";
 
