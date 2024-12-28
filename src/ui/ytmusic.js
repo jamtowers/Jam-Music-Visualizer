@@ -22,30 +22,23 @@ const ytMusicLayout = document.getElementById('layout');
 let playerPageOpen = ytMusicLayout.hasAttribute("player-page-open");
 let playerFullscreened = ytMusicLayout.hasAttribute("player-fullscreened");
 
-if(playerPageOpen) canvas.classList.add("player-open");
-if(playerFullscreened) canvas.classList.add("player-fullscreened");
-
 const ytMusicLayoutObserver = new MutationObserver(() => {
   // Player open handling
   if(ytMusicLayout.hasAttribute("player-page-open") && !playerPageOpen) {
     playerPageOpen = true;
-    canvas.classList.add("player-open");
     updateCanvasTimeout();
   }
   else if(!ytMusicLayout.hasAttribute("player-page-open") && playerPageOpen ) {
     playerPageOpen = false;
-    canvas.classList.remove("player-open");
     updateCanvasTimeout();
   }
   // player fullscreened handling
   if(ytMusicLayout.hasAttribute("player-fullscreened") && !playerFullscreened) {
     playerFullscreened = true;
-    canvas.classList.add("player-fullscreened");
     updateCanvasSize();
   }
   else if(!ytMusicLayout.hasAttribute("player-fullscreened") && playerFullscreened ) {
     playerFullscreened = false;
-    canvas.classList.remove("player-fullscreened");
     updateCanvasSize();
   }
 });

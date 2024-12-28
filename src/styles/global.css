@@ -11,3 +11,27 @@
   font-size: 16px;
   transition: bottom .5s;
 }
+
+#global-canvas {
+  z-index: 4;
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  /* This makes sure the canvas doesn't stop the user from using the UI */
+  pointer-events: none;
+  width: 100%;
+}
+
+/* #canvas2 {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+} */
+
+/* Tablet size */
+/* @media (max-width: 935px) {
+} */
+
+/* mobile size */
+/* @media (max-width: 615px) {
+} */

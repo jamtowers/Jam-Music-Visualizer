@@ -36,8 +36,8 @@
         "styles/global.css",
         "styles/settings.css",
         "styles/inputs.css",
-        "styles/canvas.css",
-        "styles/youtube-music.css"
+        "styles/youtube-music.css",
+        "styles/youtube.css"
       ],
       "js": [
         "initializer.js"

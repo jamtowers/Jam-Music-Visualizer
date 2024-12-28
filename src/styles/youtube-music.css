@@ -23,17 +23,66 @@ ytmusic-app-layout[player-fullscreened]>[slot=player-bar] .exit-fullscreen-butto
 }
 
 /* 
-  Supresses the "- var(--ytmusic-scrollbar-width)" that is on this by default,
+  Supresses the "100vw - var(--ytmusic-scrollbar-width)" that is on this by default,
   When the player is open (fullscreened or not) we don't need to account for scrollbar width since there is none to account for
+  100% handles if a scrollbar is there on it's own so this just fixes the problem entirely and we don't need to work out if a scrollbar exists or not
   This appears to be a UI bug within ytMusic itself, so you're welcome Google
 */
-ytmusic-app-layout[player-page-open]>[slot=player-bar],
-ytmusic-app-layout[player-fullscreened]>[slot=player-bar] {
-  width: 100vw !important;
+ytmusic-app-layout>[slot=player-bar] {
+  width: 100% !important;
 }
 
-/* Here we force the player bar to go up an index to let the global visualizer occupy z-index 4,
+/* Here we force the player bar to go up an index to let the global visualizer occupy z-index 5,
   this makes sure popups and such from the player bar stay above the visualizer */
 ytmusic-app-layout>[slot=player-bar] {
   z-index: 5 !important;
+}
+
+/* This adds the "offline" status height to the canvas so if being used offline the visualizer doesn't get covered by the UI shifting up */
+/* In theory we should run a recalculation on the canvas for this, but 28 vertical pixels isn't worth the event handler (and this is an edge case) */
+body:has(ytmusic-network-status-banner.ytmusic-app[current-state=OFFLINE]) > #global-canvas.music {
+  height: calc(100vh - var(--ytmusic-player-bar-height) - 28px);
+}
+/* This handles when offline banner is on fullscreen */
+body:has(ytmusic-app-layout[player-fullscreened] > ytmusic-network-status-banner.ytmusic-app[current-state=OFFLINE]) > #global-canvas.music {
+  height: calc(100vh - 28px);
+}
+/* These make sure the canvas transition matches the player bar */
+body:has(ytmusic-network-status-banner.ytmusic-app[current-state=BACK_ONLINE]) > #global-canvas.music {
+  transition: height .5s;
+  transition-delay: 2.5s;
+}
+/* The mini-player that appears in the player bar at mobile sizes doesn't move according to the network banner state, this fixes that */
+ytmusic-app-layout:has(ytmusic-network-status-banner.ytmusic-app[current-state=OFFLINE])
+ytmusic-player[is-mweb-player-bar-modernization-enabled][player-ui-state=PLAYER_BAR_ONLY] {
+  bottom: 36px;
+}
+ytmusic-app-layout:has(ytmusic-network-status-banner.ytmusic-app[current-state=BACK_ONLINE])
+ytmusic-player[is-mweb-player-bar-modernization-enabled][player-ui-state=PLAYER_BAR_ONLY] {
+  transition-delay: 2.5s;
+}
+ytmusic-player[is-mweb-player-bar-modernization-enabled][player-ui-state=PLAYER_BAR_ONLY] {
+  transition: bottom .5s;
+}
+
+#global-canvas.music {
+  height: calc(100vh - var(--ytmusic-player-bar-height));
+}
+
+body:has(ytmusic-app-layout[player-fullscreened]) > #global-canvas.music {
+  /* When fullscreened it makes the most sense to just expand to the entire screen */
+  height: 100vh;
+}
+
+/* mobile size */
+@media (max-width: 615px) {
+  body:has(ytmusic-app-layout[player-page-open]) > #global-canvas.music {
+    /* on mobile sizes we need to shift it up just a little bit more to get it above the player when the song is focused */
+    z-index: 6;
+    height: 100vh;
+  }
+  /* Accounts for the offline banner */
+  body:has(ytmusic-network-status-banner.ytmusic-app[current-state=OFFLINE]) > #global-canvas.music {
+    height: calc(100vh - 28px);
+  }
 }
