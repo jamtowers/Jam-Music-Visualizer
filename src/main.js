@@ -25,7 +25,7 @@ async function initalize (...profileSpecificInitialization) {
 switch (await getCurrentProfile()) {
   case profiles.music:
     if (userSettings.allowYoutubeMusic) {
-      await initalize(import("./ui/ytmusic.js"));
+      await initalize(import("./ui/ytmusic.js"), import("./audio-controllers/ytmusic.js"));
     }
     else {
       console.log("Visualizer is disabled for youtube music");
@@ -33,11 +33,14 @@ switch (await getCurrentProfile()) {
     break;
   case profiles.youtube:
     if (userSettings.allowYoutube) {
-      await initalize(import("./ui/youtube.js"));
+      await initalize(import("./ui/youtube.js"), import("./audio-controllers/youtube.js"));
     }
     else {
       console.log("Visualizer is disabled for youtube");
     }
+    break;
+  case profiles.exception:
+    console.log("Page is valid domain but isn't part of the main web app, Therefore visualizer is not loading");
     break;
   default:
     // we should never hit the default case, but if we do we log an error and continue like it's a default profile
@@ -45,7 +48,7 @@ switch (await getCurrentProfile()) {
     // eslint-disable-next-line no-fallthrough
   case profiles.default:
     if (userSettings.allowOther) {
-      await initalize(import("./ui/other.js"));
+      await initalize(import("./ui/other.js"), import("./audio-controllers/other.js"));
     }
     else {
       console.log("Visualizer is disabled for other");

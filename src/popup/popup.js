@@ -11,6 +11,7 @@ document.getElementById('visualizer-settings-button').onclick = async () => {
 };
 
 const irrelevantContent = document.getElementById("irrelevant");
+const exceptionContent = document.getElementById("exception");
 const disabledContent = document.getElementById("disabled");
 const loadedContent = document.getElementById("loaded");
 
@@ -32,6 +33,9 @@ switch (await getCurrentProfile()) {
     else {
       disabledContent.classList.remove("hidden");
     }
+    break;
+  case profiles.exception:
+    exceptionContent.classList.remove("hidden");
     break;
   default:
   case profiles.default:

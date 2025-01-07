@@ -1,7 +1,7 @@
 import { userSettings } from './shared/user-settings.js';
 import { canvas, visualizerToggleButtons } from './ui/global.js';
 import { canvasCtx } from './shared/canvas.js';
-import { mediaElement } from './audio-controllers/audio-context.js';
+import { isPaused } from './audio-controllers/media-element.js';
 
 /** @type {number | null} */
 let activeVisualizer = null;
@@ -34,19 +34,25 @@ function cycleColorHue(alpha = 1) {
   return `hsla(${hue}, 100%, 50%, ${alpha})`;
 }
 
-mediaElement.addEventListener('play', () => {
+/**
+ * Logic to run on play of media, called from relevant audio controller
+ */
+export function onPlay() {
   // If we have an active visualizer and there isn't an animation running we start it
   if(activeVisualizer !== null && animationFrame === null) {
     animationFrame = window.requestAnimationFrame(runVis);
   }
-});
+};
 
-mediaElement.addEventListener('pause', () => {
+/**
+ * Logic to run on pause of media, called from relevant audio controller
+ */
+export function onPause() {
   // If we have an animation running we stop it on pause to save on CPU usage
   if(animationFrame !== null) {
     stopVis();
   }
-});
+};
 
 function runVis() {
   // Clear canvas
@@ -110,7 +116,7 @@ export function setActiveVisualizer(vizNum) {
       visualizerCleanup = visualizer.deactivate;
 
       // animationFrame is the current animation request, if this is null it means that there is no current animation request, so we need to start it
-      if (animationFrame === null && mediaElement.paused === false) {
+      if (animationFrame === null && !isPaused()) {
         canvas.style.display = 'block';
         animationFrame = window.requestAnimationFrame(runVis);
       }

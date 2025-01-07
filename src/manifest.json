@@ -13,7 +13,8 @@
         "visualizers/*",
         "ui/*",
         "shared/*",
-        "types/*"
+        "types/*",
+        "audio-controllers/*"
       ],
       "matches": [
         "https://www.youtube.com/*",
