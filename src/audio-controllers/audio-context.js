@@ -26,3 +26,15 @@ export const dataArray = new Uint8Array(frequencyBinCount);
 // This might be something to add an option for the users who don't want to see the higher frequencies at all
 export const bufferLength = Math.ceil(0.65 * frequencyBinCount);
 export const frequencyData = new Uint8Array(bufferLength);
+
+// The logic for if the audio source is paused or not varies from YouTube music and YouTube proper, so we put a shared implementation here which gets overridden by the platform specific code
+// Defaults to returning true, overridden by platform specific code
+export let isPaused = () => { return true };
+
+/**
+ * Sets the function that returns if the audio source is paused or not
+ * @param {() => boolean} newIsPaused 
+ */
+export function setIsPausedFunction(newIsPaused) {
+  isPaused = newIsPaused;
+}

@@ -1,11 +1,13 @@
-import { audioCtx, analyser } from "./audio-context.js";
+import { audioCtx, analyser, setIsPausedFunction } from "./audio-context.js";
 import { onPlay, onPause } from "../visualizer.js";
-import { setMediaElement } from "./media-element.js";
 
 // Youtube Music always has the video output element available so we can just fetch it
 // This is always used even if used in audio only mode
 const videoElement = document.getElementsByTagName('video')[0];
-setMediaElement(videoElement);
+
+setIsPausedFunction(() => {
+  return videoElement.paused;
+});
 
 const source = audioCtx.createMediaElementSource(videoElement);
 

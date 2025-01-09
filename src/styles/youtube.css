@@ -1,3 +1,5 @@
 #global-canvas.youtube {
-  height: 100vh;
+  height: 100%;
+  /* z-index is to sit the visualizer above the sidebar even on mobiles sizes */
+  z-index: 2030;
 }

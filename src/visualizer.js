@@ -1,7 +1,7 @@
 import { userSettings } from './shared/user-settings.js';
 import { canvas, visualizerToggleButtons } from './ui/global.js';
 import { canvasCtx } from './shared/canvas.js';
-import { isPaused } from './audio-controllers/media-element.js';
+import { isPaused } from './audio-controllers/audio-context.js';
 
 /** @type {number | null} */
 let activeVisualizer = null;
