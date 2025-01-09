@@ -161,7 +161,7 @@ setIsPausedFunction(() => {
   return true;
 });
 
-// Here we use a Youtube specific event "yt-navigation-finish", This fires on navigation finish, Using built in browser navigation events is inconsistent
+// Here we use a Youtube specific event "yt-navigate-finish", This fires on navigation finish, Using built in browser navigation events is inconsistent
 
 // If we aren't on a watch page or we don't find the main player first time (We override the selector for first load as the element tree is different from when the app fully starts up)
 if(!window.location.pathname.startsWith("/watch") || !findMainPlayer("#player video")) {
