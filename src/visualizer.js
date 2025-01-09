@@ -18,8 +18,6 @@ let visualizerCleanup = undefined;
 
 const visualizers = ["bar-vis", "line-vis", "circle-vis"];
 
-// const visualizerDrawers = [drawBarVis, drawWaveVis, drawCircleVis];
-
 /**
  * Id of current animation frame of the visualization
  * @type {number | null}
