@@ -1,27 +1,21 @@
-DOWNLOAD FROM CHROME WEB STORE:
-https://chrome.google.com/webstore/detail/music-visualizer-for-goog/ofhohcappnjhojpboeamfijglinngdnb?hl=en
+# Jam Music Visualizer
 
-Created by Greyson Flippo 2016-06-06 :)
-Rewritten by James Towers 2024-06-16
+Adds music visualization to YouTube Music and YouTube proper.
 
-Feel free to download the source files from here and change around what you like and run the extension as a developer extension.
-All dependent files for the extension to run are present. 
+This is based on the [original extension](https://github.com/GreysonFlippo1/MusicVisualizer) written by Greyson Flippo in 2016, although most of the code has been rewritten, this has been spun out into it's own extension with [his permission](https://github.com/GreysonFlippo1/MusicVisualizer/issues/11#issuecomment-2580659250).
 
-Current Release Version: 10.0
+## Installation
 
-developer Notes:
-things to change-
-    x start using GitHub
-    x menu button change in functionality and design (too annoying especially in youtube)
-    x audio source finder
-    x bug that makes the sound high pitched after inactivity
-    x optimize performance for less powerful devices
-    x add a notification when the visualizer has found an audio source and show it's key binding to enable it
-    x make less dependent on knowing which website the extension is loaded on top of
-    x add a space where the keybindings can be viewed by the user
-    x look into storage for saving settings https://developer.chrome.com/extensions/storage
-    > find optimizations
-    > better organization
-    > optimize ui for small displays better 
-    - add a test website to run tests quicker
-    - make some debugging functions
+Once I actually get this on the Chrome Web Store that will be the place to go, there are a number of features and bug fixes I want to do before then, but for the moment you can install it like a developer by following the steps below:
+
+## Development
+
+- Download or clone the repo
+- Open Chrome and go to `chrome://extensions`
+- Enable Developer Mode in the top right corner
+- Click "Load Unpacked"
+- Select the 'src' folder from the repo
+
+## Firefox
+
+Firefox support is not planned, if you want to add support feel free to fork this and make it happen.

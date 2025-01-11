@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Music Visualizer for YouTube™ Music",
-  "version": "11",
-  "description": "Music Visualizer for YouTube Music and YouTube Video. Press ' F2 ' once loaded into a webpage to start visualizing!",
+  "name": "Jam Music Visualizer",
+  "version": "1",
+  "description": "Music Visualizer for YouTube Music and YouTube proper.",
   "web_accessible_resources": [
     {
       "resources": [
@@ -23,8 +23,9 @@
     }
   ],
   "icons": {
-    "48": "icons/icon48.png",
-    "128": "icons/icon128.png"
+    "32": "icons/32.png",
+    "48": "icons/48.png",
+    "128": "icons/128.png"
   },
   "content_scripts": [
     {
