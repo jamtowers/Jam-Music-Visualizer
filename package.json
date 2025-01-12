@@ -1,24 +1,24 @@
 {
-  "name": "visualizer",
-  "version": "1.0.0",
-  "description": "DOWNLOAD FROM CHROME WEB STORE:\r https://chrome.google.com/webstore/detail/music-visualizer-for-goog/ofhohcappnjhojpboeamfijglinngdnb?hl=en",
+  "name": "jam-music-visualizer",
+  "version": "1",
+  "description": "Chrome extension that adds music visualization to YouTube Music and YouTube proper.",
   "private": true,
   "devDependencies": {
-    "@eslint/js": "^9.2.0",
-    "eslint": "^8.57.0",
-    "globals": "^15.1.0"
+    "@eslint/js": "^9.18.0",
+    "eslint": "^9.18.0",
+    "globals": "^15.14.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/GreysonFlippo1/MusicVisualizer.git"
+    "url": "git+https://github.com/jamtowers/Jam-Music-Visualizer.git"
   },
   "author": "",
-  "license": "ISC",
+  "license": "GPL-3.0",
   "bugs": {
-    "url": "https://github.com/GreysonFlippo1/MusicVisualizer/issues"
+    "url": "https://github.com/jamtowers/Jam-Music-Visualizer/issues"
   },
-  "homepage": "https://github.com/GreysonFlippo1/MusicVisualizer#readme"
+  "homepage": "https://github.com/jamtowers/Jam-Music-Visualizer#readme"
 }

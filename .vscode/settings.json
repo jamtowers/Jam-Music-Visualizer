@@ -10,5 +10,10 @@
     "html",
     "json"
   ],
-  "spellright.notificationClass": "warning"
+  "spellright.notificationClass": "warning",
+  "spellright.ignoreFiles": [
+    "**/.gitignore",
+    "**/.spellignore",
+    "package-lock.json"
+  ]
 }
