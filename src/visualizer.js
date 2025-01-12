@@ -33,9 +33,22 @@ function cycleColorHue(alpha = 1) {
 }
 
 /**
+ * Timeout ID for pause timeout (the little delay before stopping the visualizer on pause)
+ * @type {number | null}
+ */
+let pauseTimeout = null;
+
+/**
  * Logic to run on play of media, called from relevant audio controller
  */
 export function onPlay() {
+  // If pause timeout is set it means the visualizer is still running, so we just cancel the timeout and continue
+  if(pauseTimeout) {
+    clearTimeout(pauseTimeout);
+    pauseTimeout = null;
+    return;
+  }
+
   // If we have an active visualizer and there isn't an animation running we start it
   if(activeVisualizer !== null && animationFrame === null) {
     animationFrame = window.requestAnimationFrame(runVis);
@@ -48,7 +61,11 @@ export function onPlay() {
 export function onPause() {
   // If we have an animation running we stop it on pause to save on CPU usage
   if(animationFrame !== null) {
-    stopVis();
+    // Timeout is so the visualizer has a chance to come to rest before stopping it completely
+    pauseTimeout = setTimeout(() => {
+      pauseTimeout = null; // so we know that the timeout has run
+      stopVis();
+    }, 400);
   }
 };
 
